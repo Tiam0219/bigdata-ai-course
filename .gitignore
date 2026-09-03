@@ -16,3 +16,17 @@ Thumbs.db
 *.csv
 *.xlsx
 *.zip
+
+# 敏感信息（严禁入库：密钥、凭据、个人数据）
+.env
+.env.*
+*.pem
+*.key
+secrets/
+credentials.json
+service-account*.json
+*_apikey*.txt
+
+# 个人工作区数据（.workbuddy 仅共享 skills，其余为个人数据不入库）
+.workbuddy/*
+!.workbuddy/skills/
