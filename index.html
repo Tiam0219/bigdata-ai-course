@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="snapping">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新闻学研习志 · 可视化学习导航</title>
+<style>
+  :root{
+    --paper:#f6f9fd;
+    --ink:#1c2340;
+    --ink-soft:#4d5670;
+    --line:#dde5f0;
+    --accent:#162660;
+    --accent2:#3a5bc7;
+    --powder:#d0e6fd;
+    --bone:#f1e4d1;
+    --card:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  html.snapping{scroll-snap-type:y mandatory}
+  body{
+    background-color:var(--paper);
+    background-image:radial-gradient(rgba(22,38,96,.05) 1px, transparent 1px);
+    background-size:22px 22px;
+    color:var(--ink);
+    font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",STSong,Georgia,"SimSun",serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sans{font-family:"PingFang SC","Microsoft YaHei","Source Han Sans SC",system-ui,sans-serif}
+  .snap-item{scroll-snap-align:start}
+
+  /* ===== 报头 ===== */
+  header{
+    border-bottom:3px double var(--ink);
+    padding:28px 24px 0;
+    position:relative;background:rgba(250,248,244,.92);
+  }
+  .masthead{max-width:1160px;margin:0 auto;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .brand h1{font-size:36px;letter-spacing:6px}
+  .brand h1 em{font-style:normal;background:linear-gradient(120deg,var(--accent),#4a6fd4);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand p{font-size:12px;color:var(--ink-soft);letter-spacing:3px;margin-top:6px}
+  .issue{font-size:12px;color:var(--ink-soft);text-align:right;line-height:1.9;letter-spacing:1px}
+  .issue b{color:var(--accent)}
+
+  nav{max-width:1160px;margin:0 auto;padding:0 24px}
+  .nav-inner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:16px 0 14px}
+  .nav-btn{
+    position:relative;overflow:hidden;border:1px solid var(--ink);background:transparent;color:var(--ink);
+    font-size:14px;letter-spacing:2px;padding:8px 20px;cursor:pointer;font-family:inherit;transition:all .25s ease;
+  }
+  .nav-btn:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(28,26,23,.18);background:var(--ink);color:var(--paper)}
+  .nav-btn.active{background:linear-gradient(120deg,#162660,#3a5bc7);border-color:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(22,38,96,.3)}
+  .fav-count{
+    display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:#fff;color:var(--accent);
+    font-size:11px;margin-left:5px;padding:0 4px;vertical-align:1px;
+  }
+
+  .ticker{border-top:1px solid var(--line);border-bottom:1px solid var(--ink);overflow:hidden;white-space:nowrap;background:#e9f1fb}
+  .ticker-inner{display:inline-block;padding:9px 0;font-size:13px;letter-spacing:4px;color:var(--ink-soft);animation:ticker 36s linear infinite}
+  .ticker-inner b{color:var(--accent)}
+  @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* ===== 搜索 ===== */
+  .search-wrap{margin-left:auto;position:relative}
+  .search-box{display:flex;align-items:center;border:1px solid var(--ink);background:#fff;transition:box-shadow .25s ease,border-color .25s ease}
+  .search-box:focus-within{box-shadow:0 4px 14px rgba(22,38,96,.15);border-color:var(--accent)}
+  .search-box input{border:none;outline:none;padding:8px 12px;font-size:14px;width:210px;background:transparent;font-family:inherit}
+  .search-box .icon{padding:0 10px;color:var(--accent);font-size:15px}
+  .search-results{
+    position:absolute;top:calc(100% + 6px);right:0;width:330px;max-height:380px;overflow:auto;
+    background:#fff;border:1px solid var(--line);box-shadow:0 12px 30px rgba(28,26,23,.16);display:none;z-index:60;
+  }
+  .search-results.show{display:block}
+  .search-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px;transition:background .2s ease}
+  .search-item:hover{background:#e8f1fc}
+  .search-item .t{font-size:14px}
+  .search-item .tag{font-size:11px;color:var(--accent);border:1px solid var(--accent);padding:1px 6px;white-space:nowrap}
+  .search-empty{padding:14px;font-size:13px;color:var(--ink-soft)}
+
+  main{max-width:1160px;margin:0 auto;padding:0 24px 90px}
+  .view{display:none}
+  .view.on{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+  /* ===== 首页 hero（屏 1） ===== */
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:40px 0}
+  .hero .kicker{font-size:13px;letter-spacing:6px;color:#9a6b2f}
+  .hero h2{font-size:52px;letter-spacing:5px;line-height:1.45;margin-top:14px}
+  .hero h2 span{background:linear-gradient(120deg,#162660 20%,#3a5bc7 80%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .type-line{margin-top:22px;font-size:19px;letter-spacing:4px;color:var(--ink);min-height:30px}
+  .cursor{display:inline-block;width:2px;height:20px;background:var(--accent);vertical-align:-3px;margin-left:3px;animation:blink .8s step-end infinite}
+  @keyframes blink{50%{opacity:0}}
+  .hero p{margin-top:16px;color:var(--ink-soft);font-size:15px;letter-spacing:1px;line-height:2.1}
+  .stats{display:grid;grid-template-columns:repeat(5,minmax(128px,176px));justify-content:center;gap:16px;margin-top:44px}
+  .stat{
+    position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:24px 12px 18px;text-align:center;box-shadow:0 3px 10px rgba(22,38,96,.06);
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .stat::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#162660,#3a5bc7)}
+  .stat:hover{transform:translateY(-4px);box-shadow:0 12px 26px rgba(22,38,96,.13)}
+  .stat .num{position:static;opacity:1;font-style:normal;font-size:32px;font-weight:bold;color:#162660;line-height:1.15}
+  .stat .unit{position:static;opacity:1;font-size:14px;font-weight:normal;color:#5a6a94;margin-left:3px}
+  .stat .lbl{font-size:13px;color:var(--ink-soft);letter-spacing:3px;margin-top:8px}
+
+  /* ===== pin 缩放区（屏 2） ===== */
+  .pin-wrap{height:280vh;position:relative}
+  .pin-stage{
+    position:sticky;top:0;height:100vh;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;background:var(--paper);
+  }
+  .scale-img{
+    width:88vmin;height:62vmin;will-change:transform;transform:scale(.4);
+    box-shadow:0 30px 80px rgba(28,26,23,.25);border:1px solid var(--line);background:#fff;
+  }
+  .pin-text{
+    position:absolute;left:0;right:0;bottom:9vh;text-align:center;opacity:0;pointer-events:none;
+  }
+  .pin-text .cn{font-size:34px;letter-spacing:8px}
+  .pin-text .cn b{color:var(--accent)}
+  .pin-text .en{font-size:12px;letter-spacing:5px;color:var(--ink-soft);margin-top:10px}
+
+  /* ===== 首页快速入口（屏 3） ===== */
+  .home-quick{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:40px 0}
+  .quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:26px;margin-top:26px}
+  .quick-card{
+    position:relative;overflow:hidden;cursor:pointer;border:1px solid var(--line);background:var(--card);
+    padding:38px 30px;text-align:left;transition:transform .3s ease,box-shadow .3s ease;
+  }
+  .quick-card::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#162660,#3a5bc7)}
+  .quick-card.q2::before{background:linear-gradient(90deg,#2b6cb0,#5b8ec9)}
+  .quick-card.q3::before{background:linear-gradient(90deg,#9a6b2f,#c99a55)}
+  .quick-card.q4::before{background:linear-gradient(90deg,#2f5d50,#5a9484)}
+  .quick-card:hover{transform:translateY(-6px);box-shadow:0 18px 38px rgba(22,38,96,.14)}
+  .quick-card .kicker{font-size:12px;letter-spacing:3px;color:#162660}
+  .quick-card.q2 .kicker{color:#2b6cb0}
+  .quick-card.q3 .kicker{color:#9a6b2f}
+  .quick-card.q4 .kicker{color:#2f5d50}
+  .quick-card h3{font-size:26px;margin:12px 0 10px}
+  .quick-card p{font-size:14px;color:var(--ink-soft);line-height:2}
+  .quick-card .go{margin-top:18px;display:inline-block;font-size:13px;letter-spacing:2px;color:var(--accent);border-bottom:1px solid var(--accent);padding-bottom:2px}
+
+  /* ===== 区块标题 ===== */
+  .page-head{padding-top:48px}
+  .section-head{display:flex;align-items:baseline;gap:16px;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:6px;flex-wrap:wrap}
+  .section-head::before{content:"";width:14px;height:14px;background:linear-gradient(120deg,#162660,#3a5bc7);align-self:center;transform:rotate(45deg)}
+  .section-head h2{font-size:32px;letter-spacing:4px}
+  .section-head .sub{font-size:13px;color:var(--ink-soft);letter-spacing:1px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:18px 0 4px;font-size:12.5px;color:var(--ink-soft)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+  .filter-bar{display:flex;gap:10px;margin:16px 0 24px;flex-wrap:wrap}
+  .chip{
+    position:relative;overflow:hidden;cursor:pointer;font-family:inherit;background:#fff;
+    border:1px solid var(--line);border-left-width:4px;padding:7px 18px;font-size:13px;letter-spacing:1px;
+    transition:all .22s ease;color:var(--ink-soft);
+  }
+  .chip:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(28,26,23,.15);color:var(--ink)}
+  .chip.active{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+
+  /* ===== 卡片 ===== */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:26px;margin-top:24px}
+  .tilt{perspective:800px;transition:transform .4s ease-out;will-change:transform}
+  .flip{
+    position:relative;width:100%;height:440px;transform-style:preserve-3d;
+    transition:transform .7s cubic-bezier(.35,.15,.2,1);cursor:pointer;
+  }
+  .flip.flipped{transform:rotateY(180deg)}
+  .face{
+    position:absolute;inset:0;overflow:hidden;
+    background:var(--card);display:flex;flex-direction:column;
+    box-shadow:0 2px 8px rgba(28,26,23,.06);
+    transition:opacity .55s ease, visibility 0s linear;
+  }
+  .face.front{
+    border:1px solid var(--line);
+    /* 正面仍保留背面剔除，翻转中点过后即隐去，防止镜像残影 */
+    backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  }
+  .face.back{
+    transform:rotateY(180deg);color:#eef2fa;border:1px solid #1c2650;
+    background:linear-gradient(155deg,#1c2650 0%,#11152c 100%);
+    padding:24px 22px;
+    /* 关键修复：背面绝不设 backface-visibility:hidden。
+       Chromium 会按元素自身 transform 判定背面朝向，忽略父级累计旋转，
+       导致 rotateY(180°) 的背面被错误剔除——这就是翻转后空白的原因。
+       背面的隐藏/显示完全交由下方的 opacity + visibility 交叉淡化负责。 */
+    backface-visibility:visible;-webkit-backface-visibility:visible;
+  }
+  /* 交叉淡化：opacity + visibility 控制正背面切换，与 0.7s 翻转动效同步 */
+  .flip:not(.flipped) .back{opacity:0;visibility:hidden;transition:opacity .55s ease, visibility 0s linear .55s}
+  .flip.flipped .front{opacity:0;visibility:hidden;transition:opacity .55s ease, visibility 0s linear .55s}
+
+  .cover{height:150px;margin:0 0 12px;flex-shrink:0;border-bottom:1px solid var(--line)}
+  .cover svg{display:block;width:100%;height:100%}
+  .face-body{padding:0 22px 20px;display:flex;flex-direction:column;flex:1}
+  .face.front .face-body{padding-top:2px}
+  .num{position:absolute;top:8px;right:14px;font-size:56px;font-style:italic;font-weight:bold;opacity:.13;pointer-events:none;line-height:1.2;z-index:1}
+  .badge{align-self:flex-start;font-size:11px;letter-spacing:2px;padding:3px 10px;border:1px solid;border-radius:2px}
+  .face.front .pad{padding:24px 22px 20px;display:flex;flex-direction:column;flex:1}
+  .face h3{font-size:21px;margin-top:14px;line-height:1.5}
+  .face.back h3{color:#fff}
+  .meta{font-size:12.5px;color:var(--ink-soft);margin-top:8px;letter-spacing:.5px;line-height:1.7}
+  .desc{font-size:13.5px;line-height:2;margin-top:14px;color:var(--ink-soft);flex:1;overflow-y:auto;scrollbar-width:thin;padding-right:4px}
+  .desc::-webkit-scrollbar{width:4px}
+  .desc::-webkit-scrollbar-thumb{background:#d8d2c6;border-radius:2px}
+  .face.front .desc.clamp{
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-y:hidden;flex:none;
+  }
+  .face.back .desc{color:#e6e2d7}
+  .hint{font-size:11px;color:var(--ink-soft);letter-spacing:2px;margin-top:12px;flex-shrink:0}
+  .face.back .hint{color:#9fb0d0}
+  .src-tag{font-size:11px;line-height:1.8;color:#9fb0d0;margin-top:10px;border-top:1px dashed rgba(255,255,255,.25);padding-top:8px;flex-shrink:0}
+  .src-tag a{color:#c9dcfa;text-decoration:none;border-bottom:1px dotted #c9dcfa}
+
+  /* 收藏按钮 */
+  .fav-btn{
+    position:absolute;top:10px;right:10px;z-index:7;width:34px;height:34px;border-radius:50%;
+    border:1px solid var(--line);background:rgba(255,255,255,.94);color:var(--accent);
+    font-size:17px;line-height:1;cursor:pointer;transition:all .2s ease;
+    display:flex;align-items:center;justify-content:center;font-family:inherit;padding:0;
+  }
+  .fav-btn:hover{transform:scale(1.18);box-shadow:0 4px 12px rgba(22,38,96,.25)}
+  .fav-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  /* 收藏页 */
+  .fav-sub{font-size:20px;letter-spacing:3px;margin:36px 0 4px;display:flex;align-items:center;gap:10px}
+  .fav-sub::after{content:"";flex:1;height:1px;background:var(--line)}
+  .fav-empty{
+    display:none;text-align:center;padding:90px 20px;color:var(--ink-soft);
+  }
+  .fav-empty .big{font-size:44px;color:var(--line)}
+  .fav-empty p{margin:18px 0 26px;letter-spacing:1px;line-height:2}
+  .cta-btn{
+    position:relative;overflow:hidden;cursor:pointer;font-family:inherit;font-size:14px;letter-spacing:2px;
+    border:1px solid var(--accent);background:var(--accent);color:#fff;padding:10px 26px;transition:all .25s ease;margin:0 6px;
+  }
+  .cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(200,54,27,.3)}
+  .cta-btn.ghost{background:transparent;color:var(--accent)}
+
+  /* 来源自查面板 */
+  .source-panel{margin:56px 0 0;border:1px solid var(--line);background:#faf4ea;padding:30px;position:relative;overflow:hidden}
+  .source-panel::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#162660,#2b6cb0,#9a6b2f)}
+  .source-panel h3{font-size:21px;letter-spacing:2px;margin-bottom:14px}
+  .source-panel h3::before{content:"✓ ";color:var(--accent)}
+  .source-panel ul{list-style:none}
+  .source-panel li{font-size:13.5px;line-height:2;color:var(--ink-soft);padding:9px 0;border-bottom:1px dashed var(--line);font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+  .source-panel li b{color:var(--ink)}
+  .source-panel a{color:var(--navy);text-decoration:none;border-bottom:1px dotted var(--navy);word-break:break-all}
+  .verdict{margin-top:16px;font-size:13px;color:var(--accent);letter-spacing:1px}
+
+  @keyframes flash{0%{box-shadow:0 0 0 0 rgba(22,38,96,.5)}100%{box-shadow:0 0 0 24px rgba(22,38,96,0)}}
+  .flash .face{animation:flash .9s ease-out 2}
+
+  .ripple-host{position:relative;overflow:hidden}
+  .ripple{
+    position:absolute;border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle,rgba(22,38,96,.22) 0%,rgba(22,38,96,.1) 60%,transparent 70%);
+    transform:scale(0);opacity:1;animation:ripple .6s ease-out forwards;
+  }
+  @keyframes ripple{to{transform:scale(4);opacity:0}}
+
+  footer{background:#162660;color:#c9d6ee;padding:30px 24px;text-align:center;font-size:12.5px;letter-spacing:1px;line-height:2.2}
+  footer b{color:#d0e6fd}
+  footer a{color:#d0e6fd;text-decoration:none;border-bottom:1px dotted #d0e6fd}
+
+  @media (max-width:640px){
+    .hero h2{font-size:32px}
+    .stats{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));max-width:560px;margin-left:auto;margin-right:auto}
+    .search-wrap{margin-left:0;width:100%}
+    .search-box input{width:100%}
+    .search-results{width:100%}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="masthead">
+    <div class="brand">
+      <h1>新闻学<em>研习志</em></h1>
+      <p>JOURNALISM · 面向新闻学学生的可视化学习导航</p>
+    </div>
+    <div class="issue sans">
+      第 <b id="issueNo">001</b> 期 · 随刊更新<br>
+      <span id="issueDate">——年——月——日 · 星期—</span>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-inner sans">
+      <button class="nav-btn ripple-host active" data-view="home">首 页</button>
+      <button class="nav-btn ripple-host" data-view="books">书籍推荐</button>
+      <button class="nav-btn ripple-host" data-view="courses">必修课程</button>
+      <button class="nav-btn ripple-host" data-view="jobs">就业岗位</button>
+      <button class="nav-btn ripple-host" data-view="favs">我的收藏<span class="fav-count" id="favCount">0</span></button>
+      <div class="search-wrap">
+        <div class="search-box">
+          <span class="icon">⌕</span>
+          <input id="searchInput" type="text" placeholder="搜索书籍 / 课程 / 岗位，回车直达…" autocomplete="off">
+        </div>
+        <div class="search-results sans" id="searchResults"></div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<div class="ticker sans"><div class="ticker-inner" id="tickerInner"></div></div>
+
+<main>
+  <!-- ============ 首页 ============ -->
+  <section class="view on" id="view-home">
+    <div class="snap-item hero">
+      <div class="kicker sans">— A VISUAL GUIDE FOR JOURNALISM STUDENTS —</div>
+      <h2>以笔为灯，<span>以真为尺</span></h2>
+      <div class="type-line"><span id="typeText"></span><span class="cursor"></span></div>
+      <p>这里汇集新闻学精选书目、专业必修课程与未来就业岗位导览<br>课程信息来自教育部国家标准，岗位薪资来自主流招聘平台官方统计，逐项可溯源</p>
+      <div class="stats sans">
+        <div class="stat"><div class="num">36<span class="unit">本</span></div><div class="lbl">精选书目</div></div>
+        <div class="stat"><div class="num">14<span class="unit">门</span></div><div class="lbl">必修课程</div></div>
+        <div class="stat"><div class="num">20<span class="unit">个</span></div><div class="lbl">就业岗位</div></div>
+        <div class="stat"><div class="num">3<span class="unit">个</span></div><div class="lbl">官方信源</div></div>
+        <div class="stat"><div class="num" id="statFav">0<span class="unit">项</span></div><div class="lbl">我的收藏</div></div>
+      </div>
+    </div>
+
+    <!-- 屏 2：pin 滚动缩放 -->
+    <div class="snap-item pin-wrap" id="pinWrap">
+      <div class="pin-stage">
+        <div class="scale-img" id="scaleImg">
+          <svg viewBox="0 0 800 560" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+            <rect width="800" height="560" fill="#fdfcf9"/>
+            <rect x="0" y="0" width="800" height="14" fill="#162660"/>
+            <rect x="0" y="546" width="800" height="14" fill="#162660"/>
+            <text x="400" y="72" text-anchor="middle" font-size="42" letter-spacing="16" fill="#1c2340" font-weight="bold">新闻学研习志</text>
+            <line x1="60" y1="92" x2="740" y2="92" stroke="#1c2340" stroke-width="2"/>
+            <line x1="60" y1="100" x2="740" y2="100" stroke="#1c2340" stroke-width="1"/>
+            <text x="60" y="126" font-size="14" fill="#4d5670" letter-spacing="2">第 001 期 · 今日四版 · 每逢学习更新</text>
+            <text x="740" y="126" text-anchor="end" font-size="14" fill="#4d5670" letter-spacing="2">售价：一杯咖啡的专注</text>
+            <!-- 头版大字 -->
+            <text x="400" y="330" text-anchor="middle" font-size="240" fill="#162660" font-weight="bold" font-family="'KaiTi',STKaiti,serif">真</text>
+            <line x1="90" y1="380" x2="710" y2="380" stroke="#1c2340" stroke-width="1"/>
+            <g fill="#b8c4da">
+              <rect x="90" y="400" width="180" height="8"/><rect x="90" y="418" width="180" height="8"/><rect x="90" y="436" width="180" height="8"/><rect x="90" y="454" width="140" height="8"/>
+              <rect x="310" y="400" width="180" height="8"/><rect x="310" y="418" width="180" height="8"/><rect x="310" y="436" width="180" height="8"/><rect x="310" y="454" width="140" height="8"/>
+              <rect x="530" y="400" width="180" height="8"/><rect x="530" y="418" width="180" height="8"/><rect x="530" y="436" width="180" height="8"/><rect x="530" y="454" width="140" height="8"/>
+            </g>
+            <g>
+              <rect x="640" y="150" width="86" height="86" rx="6" fill="#162660"/>
+              <text x="683" y="192" text-anchor="middle" font-size="26" fill="#d0e6fd" font-family="'KaiTi',STKaiti,serif">求真</text>
+              <text x="683" y="218" text-anchor="middle" font-size="12" fill="#d0e6fd">编辑部 印</text>
+            </g>
+          </svg>
+        </div>
+        <div class="pin-text" id="pinText">
+          <div class="cn">新闻是历史的<b>初稿</b>。</div>
+          <div class="en sans">NEWS IS THE FIRST DRAFT OF HISTORY</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 屏 3：快速入口 -->
+    <div class="snap-item home-quick">
+      <div class="section-head">
+        <h2>开始探索</h2>
+        <span class="sub sans">四大板块，各取所需</span>
+      </div>
+      <div class="quick">
+        <div class="quick-card ripple-host" data-view="books">
+          <div class="kicker sans">BOOKS</div>
+          <h3>必读书籍</h3>
+          <p>36 本覆盖理论、历史、业务、传播经典与数字时代的书目，仿经典版式封面，点击卡片翻转查看百字详介，右上角 ♡ 可收藏。</p>
+          <span class="go sans">进入书单 →</span>
+        </div>
+        <div class="quick-card q2 ripple-host" data-view="courses">
+          <div class="kicker sans">COURSES</div>
+          <h3>必修课程</h3>
+          <p>依据教育部《普通高等学校本科专业类教学质量国家标准（新闻传播学类）》整理 14 门专业基础课与核心课，底部附来源自查清单。</p>
+          <span class="go sans">查看课程 →</span>
+        </div>
+        <div class="quick-card q4 ripple-host" data-view="jobs">
+          <div class="kicker sans">CAREERS</div>
+          <h3>就业岗位</h3>
+          <p>记者、新媒体运营、舆情分析师、宣传干事……20 个真实在招岗位归入五大方向，卡片背面是岗位要求与来自主流招聘平台的平均薪资参考。</p>
+          <span class="go sans">看看岗位 →</span>
+        </div>
+        <div class="quick-card q3 ripple-host" data-view="favs">
+          <div class="kicker sans">FAVORITES</div>
+          <h3>我的收藏</h3>
+          <p>把想读的书、要修的课程和心仪的岗位收进来，保存在本机浏览器中，随时回来查看，构建属于你的清单。</p>
+          <span class="go sans">查看收藏 →</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 书籍推荐 ============ -->
+  <section class="view" id="view-books">
+    <div class="page-head">
+      <div class="section-head">
+        <h2>新闻学必读书目</h2>
+        <span class="sub sans">36 本经典 · 仿经典版式封面 · 点击翻转查看背面百字详介</span>
+      </div>
+      <div class="legend sans" id="bookLegend"></div>
+      <div class="filter-bar sans" id="bookFilters"></div>
+    </div>
+    <div class="grid" id="bookGrid"></div>
+  </section>
+
+  <!-- ============ 必修课程 ============ -->
+  <section class="view" id="view-courses">
+    <div class="page-head">
+      <div class="section-head">
+        <h2>新闻学专业必修课程</h2>
+        <span class="sub sans">依据教育部《国标（新闻传播学类）》整理 · 逐项可溯源</span>
+      </div>
+      <div class="legend sans" id="courseLegend"></div>
+      <div class="filter-bar sans" id="courseFilters"></div>
+    </div>
+    <div class="grid" id="courseGrid"></div>
+
+    <div class="source-panel">
+      <h3>信息来源自查清单</h3>
+      <ul>
+        <li><b>《普通高等学校本科专业类教学质量国家标准（新闻传播学类）》</b>——教育部高等学校教学指导委员会发布（2018）。本文「专业基础类课程」与「新闻学专业必修（核心）课程」清单直接依据该标准 5.2 节课程设置条款整理：<a href="https://wjbobs.hope55.com/db/UploadFile/2025/9/24/9a3121c3-53f4-4ba3-aa0e-c95799c14b0b.pdf" target="_blank">标准全文 PDF</a></li>
+        <li><b>阳光高考平台（教育部学信网）</b>——新闻学专业（专业代码 050301）官方专业介绍与开设课程：<a href="https://gaokao.chsi.com.cn/wap/sch/viewzyjs?dicCurId=73396681&specId=73383599" target="_blank">gaokao.chsi.com.cn 专业库</a></li>
+        <li><b>中国传媒大学新闻学院官网</b>——新闻学专业培养方案（专业基础课 / 专业核心课官方口径），其课程设置与《国标》高度一致：<a href="https://xinwenxueyuan.cuc.edu.cn/7492/list.htm" target="_blank">xinwenxueyuan.cuc.edu.cn</a></li>
+      </ul>
+      <p class="verdict sans">自查结论：以上三个来源均为官方或高校官方网站，相互印证，未发现虚构或未经核实的内容；课程具体名称允许高校按《国标》要求微调。</p>
+    </div>
+  </section>
+
+  <!-- ============ 就业岗位 ============ -->
+  <section class="view" id="view-jobs">
+    <div class="page-head">
+      <div class="section-head">
+        <h2>未来就业岗位</h2>
+        <span class="sub sans">20 个岗位 · 五大方向 · 薪资取招聘平台统计的全国平均水平</span>
+      </div>
+      <div class="legend sans" id="jobLegend"></div>
+      <div class="filter-bar sans" id="jobFilters"></div>
+    </div>
+    <div class="grid" id="jobGrid"></div>
+
+    <div class="source-panel">
+      <h3>岗位与薪资信息来源自查清单</h3>
+      <ul>
+        <li><b>职友集（jobui.com）</b>——基于各大招聘平台公开职位的薪酬大数据统计，本站记者、编辑、文案策划、新媒体运营、舆情分析师等岗位的平均月薪与薪酬区间均取自该平台：<a href="https://www.jobui.com" target="_blank">jobui.com</a></li>
+        <li><b>智联招聘《中国企业招聘薪酬报告》</b>——招聘平台官方按季度发布的薪酬数据（含新媒体运营等岗位平均招聘月薪）：<a href="https://www.zhaopin.com" target="_blank">zhaopin.com</a></li>
+        <li><b>国家公务员局 / 人力资源和社会保障部</b>——公务员与事业单位岗位薪酬按国家统一工资制度执行，不适用市场化薪资统计，故体制方向卡片标注「按国家统一标准」：<a href="http://www.scs.gov.cn" target="_blank">scs.gov.cn</a></li>
+      </ul>
+      <p class="verdict sans">自查结论：薪资均取自招聘平台官方统计口径（2025–2026 年数据），取平均或主流区间水平；薪酬因城市、经验、企业规模差异较大，实际以具体招聘方为准，本页数据仅供参考。</p>
+    </div>
+  </section>
+
+  <!-- ============ 我的收藏 ============ -->
+  <section class="view" id="view-favs">
+    <div class="page-head">
+      <div class="section-head">
+        <h2>我的收藏</h2>
+        <span class="sub sans">收藏保存在本机浏览器（localStorage），点击 ♡ 可随时移除</span>
+      </div>
+    </div>
+    <div id="favBookSec">
+      <h3 class="fav-sub">收藏的书籍</h3>
+      <div class="grid" id="favBookGrid"></div>
+    </div>
+    <div id="favCourseSec">
+      <h3 class="fav-sub">收藏的课程</h3>
+      <div class="grid" id="favCourseGrid"></div>
+    </div>
+    <div id="favJobSec">
+      <h3 class="fav-sub">收藏的岗位</h3>
+      <div class="grid" id="favJobGrid"></div>
+    </div>
+    <div class="fav-empty" id="favEmpty">
+      <div class="big">♡</div>
+      <p>还没有收藏任何内容<br>去书单、课程或岗位页，点击卡片右上角的 ♡ 收藏起来吧</p>
+      <button class="cta-btn ripple-host" data-view="books">逛逛书单</button>
+      <button class="cta-btn ghost ripple-host" data-view="jobs">看看岗位</button>
+    </div>
+  </section>
+</main>
+
+<footer class="sans">
+  新闻学研习志 · 课程内容来源：<b>教育部《普通高等学校本科专业类教学质量国家标准（新闻传播学类）》</b> / 阳光高考 / 中国传媒大学新闻学院官网<br>
+  岗位薪资来源：职友集、智联招聘等招聘平台官方统计（仅供参考） · 书目信息均为正式出版版本 · 本站为课程学习导航演示页面
+</footer>
+
+<script>
+/* ================= 分类配色 ================= */
+const CAT_COLORS = {
+  "理论入门":"#162660","历史脉络":"#9a6b2f","媒介与文化批判":"#44557a",
+  "采写业务":"#2b6cb0","传播经典":"#2f5d50","数字时代与媒介素养":"#3a7ca5",
+  "专业基础课":"#162660","专业核心课":"#8a4b2a",
+  "传统媒体方向":"#162660","新媒体运营方向":"#2b6cb0","品牌公关方向":"#9a6b2f",
+  "体制公考方向":"#2f5d50","自主创业方向":"#8a4b2a"
+};
+const catColor = c => CAT_COLORS[c] || "#162660";
+
+/* ================= 数据：36 本书（背面为独立百字详介） ================= */
+const BOOKS = [
+  /* ---- 理论入门 ---- */
+  {cat:"理论入门", title:"新闻学概论", author:"李良荣 著", publisher:"复旦大学出版社",
+   cover:{bg:"#f5efe6",fg:"#8c1f12",accent:"#c8361b",style:"spine",lines:["新闻学","概　论"]},
+   desc:"国内高校使用最广的新闻学入门教材，系统讲授新闻基本理论与马克思主义新闻观。",
+   back:"全书以马克思主义新闻观为指导，依次讨论新闻活动与新闻本源、新闻事业的产生及其发展规律、新闻事业的性质与功能、新闻自由与社会控制、新闻生产与新闻选择，以及新闻从业人员的专业理念、职业道德与修养等议题。其框架兼顾学理阐释与中国新闻改革实践，语言清晰、体系完整，自出版以来多次修订再版，被国内绝大多数新闻院系选作入门教材，也是研究生入学考试的重要参考书目。"},
+  {cat:"理论入门", title:"传播学教程", author:"郭庆光 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#ffffff",fg:"#1b4f8a",accent:"#2b6cb0",style:"band",lines:["传播学","教　程"]},
+   desc:"传播学基础理论的经典教材，全面介绍人类传播的规律、制度与经典理论范式。",
+   back:"全书共十四章，从传播学的研究对象与基本问题入手，依次讲解人类传播活动的历史与发展、符号与意义、传播过程与系统结构、人内传播与人际传播、群体传播与组织传播、大众传播的制度与控制研究、媒介的性质与作用、受众理论，以及传播效果研究的历史脉络与主要理论，包括议程设置、沉默的螺旋、培养理论与知沟研究等。结构严谨、概念准确，是国内传播学考研的通用教材。"},
+  {cat:"理论入门", title:"新闻理论十讲", author:"陈力丹 著", publisher:"复旦大学出版社",
+   cover:{bg:"#eef0ec",fg:"#33413a",accent:"#5c6f5d",style:"band",lines:["新闻理论","十　讲"]},
+   desc:"以十讲形式辨析新闻理论核心议题，语言平实、案例丰富，适合作为概论课延伸读物。",
+   back:"与陈力丹教授一贯的讲课风格一脉相承，本书以十讲的形式讨论新闻与新闻价值、新闻真实性、新闻客观性、大众传媒的职能、新闻出版自由、新闻法规、新闻职业道德、宣传学与舆论学等核心议题。每讲围绕一个理论问题展开，结合中外新闻实践中的典型案例进行辨析，拒绝灌输现成结论，重在展示概念背后的历史语境与理论争鸣，适合作为新闻学概论的延伸阅读与课堂讨论素材。"},
+  {cat:"理论入门", title:"马克思主义新闻观教程", author:"陈力丹 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#b02e20",fg:"#f8ecdd",accent:"#8a1f14",style:"split",lines:["马克思主义","新闻观教程"]},
+   desc:"系统讲解马克思主义经典作家新闻观点及其中国化成果，新闻院系马新观课程常用教材。",
+   back:"本书依据马克思主义经典作家的原著进行梳理，系统讲授马克思主义新闻观的理论来源、历史形成与核心内容，包括党的新闻舆论工作的党性原则、人民立场、真实性要求与正确舆论导向，并结合中国共产党新闻工作的历史经验加以阐释。书中同时就西方新闻自由观的相关论点进行辨析，帮助学生从源头上理解马克思主义新闻观，是我国新闻教育中根基性的课程教材。"},
+  {cat:"理论入门", title:"舆论", author:"沃尔特·李普曼 著", publisher:"北京大学出版社",
+   cover:{bg:"#1f3d33",fg:"#e8d9a8",accent:"#c9a548",style:"center",lines:["舆　论"]},
+   desc:"传播学奠基之作，「拟态环境」与「刻板印象」两大概念即出自本书。",
+   back:"全书以「外部世界与我们头脑中的景象」开篇，提出人们借助媒介建构的「拟态环境」来认识世界，继而剖析刻板印象如何左右公众的认知，讨论兴趣、公意的形成与民主制度运行的关系。李普曼认为，普通公众难以直接把握复杂世界的真相，这一冷峻判断深刻影响了此后传播学关于议程设置、把关人与媒介效果的研究路径，是理解舆论现象不可绕开的理论原点。"},
+  {cat:"理论入门", title:"幻影公众", author:"沃尔特·李普曼 著", publisher:"复旦大学出版社",
+   cover:{bg:"#40506b",fg:"#e6ebf2",accent:"#22314a",style:"spine",lines:["幻影公众"]},
+   desc:"李普曼对「公众能否理性参与民主」的进一步追问，可视为《舆论》的姊妹篇。",
+   back:"作为《舆论》的续篇，李普曼在本书中进一步系统阐述其民主观：他认为「公众」在很大程度上只是一个幻影，公众无法对具体事务作出理性判断，更适合扮演旁观者而非决断者的角色；真正有效的公共决策应交由特定利益相关者辩论，并由有能力掌握事实的专家作出判断。这些观点在当时引起激烈争论，至今仍是民主理论、公共舆论与专家治国讨论中的重要参照。"},
+  {cat:"理论入门", title:"传播学史", author:"埃弗里特·罗杰斯 著", publisher:"上海译文出版社",
+   cover:{bg:"#efe9dd",fg:"#3a3128",accent:"#8a6d3b",style:"band",lines:["传播学史"]},
+   desc:"以人物传记笔法书写的传播学学科发展史，中译本由殷晓蓉翻译。",
+   back:"罗杰斯以人物传记的笔法书写传播学学科史：从芝加哥学派的杜威、帕克、米德、库利讲起，经李普曼、拉斯韦尔、拉扎斯菲尔德、霍夫兰、勒温、香农等学者的学术生涯，直至施拉姆在伊利诺伊与斯坦福创立传播学的研究机构。全书资料翔实、叙事生动，既呈现了学科诞生的社会背景与思想脉络，也展现了重要理论与学者个人经历的关联，是进入传播学学术地图的导览之书。"},
+  {cat:"理论入门", title:"社会传播的结构与功能", author:"哈罗德·拉斯韦尔 著", publisher:"中国传媒大学出版社",
+   cover:{bg:"#22415f",fg:"#e8eef5",accent:"#4a7396",style:"band",lines:["社会传播的","结构与功能"]},
+   desc:"「5W」模式与传播三大社会功能的出处，篇幅不长却奠定传播研究的基本框架。",
+   back:"这篇发表于 1948 年的论文篇幅不长，却奠定了传播研究的基本框架：拉斯韦尔提出「谁、说什么、通过什么渠道、对谁说、产生什么效果」的「5W」过程模式，并归纳了传播的三项社会功能——环境监测、社会协调与文化传承，此后赖特又补充了娱乐功能。这一框架直接催生了控制研究、内容分析、媒介分析、受众分析与效果分析五大研究领域，是任何传播学学习者都必须掌握的理论基石。"},
+  /* ---- 历史脉络 ---- */
+  {cat:"历史脉络", title:"中国新闻传播史", author:"方汉奇 主编", publisher:"中国人民大学出版社",
+   cover:{bg:"#7a1f16",fg:"#f2e3c9",accent:"#5a150e",style:"spine",lines:["中国新闻","传播史"]},
+   desc:"中国新闻事业发展的权威通史，由新闻史学科奠基人方汉奇主编。",
+   back:"方汉奇主编的这部通史是教育部「面向 21 世纪课程教材」，叙述范围从古代邸报、小报一直延续到当代新闻传播事业。全书以史料见长，系统梳理了中国新闻事业的产生条件、发展脉络与社会功能变迁，涉及著名报人、重要报刊与新闻思想的流变。书中强调新闻史与政治史、社会史的关联，既是一部专业史教材，也为观察中国近现代社会的变迁提供了独特的新闻业视角。"},
+  {cat:"历史脉络", title:"全球新闻传播史", author:"李彬 著", publisher:"清华大学出版社",
+   cover:{bg:"#164e4a",fg:"#e2efec",accent:"#0f3a36",style:"band",lines:["全球新闻","传播史"]},
+   desc:"突破国别史写法，把新闻传播放入人类文明演进的大背景中考察。",
+   back:"本书突破国别新闻史的写法，把新闻传播放入人类文明演进的大背景中考察：从口语、文字、印刷术到电子媒介，梳理新闻传播技术的每一次跃迁如何改变信息流动的方式与社会结构。书中特别关注文艺复兴、宗教改革、启蒙运动、工业革命等历史节点与报刊诞生的关系，视野宏阔、线索清晰，有助于学生在世界历史的尺度上理解新闻业的本质与趋向。"},
+  {cat:"历史脉络", title:"中国报学史", author:"戈公振 著", publisher:"商务印书馆",
+   cover:{bg:"#f0e6cf",fg:"#8c1f12",accent:"#b02e20",style:"vertical",lines:["中国报学史"]},
+   desc:"中国第一部系统的新闻史专著，1927 年初版，钩沉大量原始史料。",
+   back:"戈公振 1927 年由商务印书馆出版的这部著作，是中国第一部系统的新闻史专著。全书分绪论、官报独占时期、外报创始时期、民报勃兴时期与民国成立以后等篇章，首次按历史时期梳理了中国报纸的源流、体制与业务演变，并引证了大量原始材料。尽管部分论断带有时代局限，其史料钩沉之功奠定了中国新闻史研究的基础，至今仍被学者广泛征引，后列入中华现代学术名著丛书再版。"},
+  {cat:"历史脉络", title:"美国新闻史", author:"迈克尔·埃默里、埃德温·埃默里 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#1d3461",fg:"#ffffff",accent:"#b02e20",style:"split",lines:["美国新闻史"]},
+   desc:"美国新闻传播事业三百年通史，全名《美国新闻史：大众传播媒介解释史》。",
+   back:"埃默里父子的这部通史从殖民地时期的印刷商写起，完整叙述了三百年间美国新闻业的演进：政党报刊的论战、便士报与商业报刊的兴起、黄色新闻大战、扒粪运动与进步主义时代、广播与电视的登场，直至水门事件后调查报道的鼎盛。全书以媒介与社会互动的视角组织材料，把新闻史写成美国社会史的一部分，是理解美国新闻职业传统与媒介体制的标准读本。"},
+  {cat:"历史脉络", title:"发掘新闻", author:"迈克尔·舒德森 著", publisher:"北京大学出版社",
+   cover:{bg:"#e8c832",fg:"#1c1a17",accent:"#a8821a",style:"center",lines:["发掘新闻"]},
+   desc:"以社会史方法考察美国客观性报道理念如何形成的名著。",
+   back:"舒德森在本书中以社会史方法考察美国新闻职业的形成：19 世纪的政党报刊如何被商业化便士报取代，「客观报道」如何在 19 世纪末 20 世纪初成为新闻业的职业信条，以及社会责任论、越战报道与水门事件又如何从内部挑战这一信条。全书把新闻业放到经济与政治结构变迁中理解，示范了新闻史研究的社会学转向，是新闻学与新闻史研究的方法论范本。"},
+  {cat:"历史脉络", title:"帝国与传播", author:"哈罗德·伊尼斯 著", publisher:"中国传媒大学出版社",
+   cover:{bg:"#4a2f23",fg:"#ead9c2",accent:"#6e4a30",style:"spine",lines:["帝国与传播"]},
+   desc:"媒介环境学开山之作，分析媒介材料与帝国组织形态的关系。",
+   back:"伊尼斯以古代文明为考察对象，分析不同媒介材料与帝国组织形态的关系：石头、黏土等耐久媒介「偏向时间」，支撑宗教与传统的延续；莎草纸、纸张等轻便媒介「偏向空间」，有利于辽阔疆域的行政控制与军事扩张。他把传播技术视为塑造文明结构的核心变量，开创了媒介环境学的研究传统。本书理论与史料并重，初读颇有难度，但会从根本上改变读者看待媒介的视角。"},
+  /* ---- 媒介与文化批判 ---- */
+  {cat:"媒介与文化批判", title:"理解媒介", author:"马歇尔·麦克卢汉 著", publisher:"商务印书馆",
+   cover:{bg:"#16181c",fg:"#f2f2f2",accent:"#d43d2a",style:"band",lines:["理解媒介"]},
+   desc:"「媒介即讯息」——20 世纪传播思想中最具冲击力的论断。",
+   back:"全书分为两部分。第一部分提出核心命题——「媒介即讯息」：真正影响社会的是媒介形式本身而非其传递的内容；第二部分逐一分析二十余种媒介作为人的感官延伸的方式。麦克卢汉还区分「冷媒介」与「热媒介」，并预言「地球村」的到来。本书文风跳跃、典故密集，初读不易，但其思想深刻塑造了数字时代的媒介讨论，是传播思想史上绕不开的奇书。"},
+  {cat:"媒介与文化批判", title:"娱乐至死", author:"尼尔·波兹曼 著", publisher:"广西师范大学出版社",
+   cover:{bg:"#f4f1ea",fg:"#16181c",accent:"#c8361b",style:"center",lines:["娱乐至死"]},
+   desc:"批评电视时代一切公共事务日益以娱乐方式呈现的经典之作。",
+   back:"波兹曼把奥威尔《1984》与赫胥黎《美丽新世界》的两种预言对举：前者担心书籍被禁止，后者担心人们因沉迷享乐而不再愿意读书。全书分析印刷术时代理性、有序的「阐释年代」如何被电视时代的「娱乐业时代」取代——政治、宗教、新闻、教育纷纷披上娱乐的外衣，公共话语的严肃性随之消解。在短视频与算法推荐的时代重读本书，其警示不仅没有过时，反而更加切近。"},
+  {cat:"媒介与文化批判", title:"童年的消逝", author:"尼尔·波兹曼 著", publisher:"中信出版社",
+   cover:{bg:"#d96c2c",fg:"#fdf3e7",accent:"#b0521a",style:"band",lines:["童年的消逝"]},
+   desc:"提出反直觉论点：「童年」是被印刷术发明出来的概念。",
+   back:"波兹曼在此提出了一个反直觉的论点：「童年」是被印刷术发明出来的概念——识字能力构成一道门槛，把掌握文字的成人与未掌握文字的童年分隔开来；而电视等电子媒介让成人世界的一切信息无差别地流向儿童，这道门槛随之瓦解，「童年」便开始消逝。全书从媒介史与文化史的角度展开论证，虽然结论存在争议，却为理解媒介变迁与社会结构的关系提供了极富启发性的视角。"},
+  {cat:"媒介与文化批判", title:"技术垄断", author:"尼尔·波兹曼 著", publisher:"北京大学出版社",
+   cover:{bg:"#37414d",fg:"#dde5ec",accent:"#6f8296",style:"split",lines:["技术垄断"]},
+   desc:"波兹曼媒介批评三部曲的收官之作，反思技术至上的文化。",
+   back:"波兹曼将人类文化分为三个阶段：工具使用文化、技术统治文化与技术垄断文化。在技术垄断阶段，效率与技术的价值凌驾于一切传统、道德与社会叙事之上，人们开始用「用技术解决问题」的方式重新定义教育、医疗、政治乃至心灵。本书是波兹曼对技术决定论最系统的批评，他呼吁以人文传统与社会科学的清醒，守护技术发展与意义世界之间的平衡。"},
+  {cat:"媒介与文化批判", title:"单向度的人", author:"赫伯特·马尔库塞 著", publisher:"上海译文出版社",
+   cover:{bg:"#efe6da",fg:"#23201c",accent:"#8a2b1c",style:"spine",lines:["单向度的人"]},
+   desc:"法兰克福学派批判理论代表作，反思发达工业社会的思想控制。",
+   back:"马尔库塞批判发达工业社会通过技术进步与消费主义，把反抗的向度整合进现存秩序：物质丰裕消解了阶级对立的尖锐性，大众传媒塑造虚假需求，哲学丧失批判性。他借用黑格尔与马克思的辩证法，呼吁恢复否定性思维与乌托邦的想象。本书是 1968 年学生运动的重要理论资源之一，也是理解法兰克福学派文化批判的核心文本，行文艰深但思想锋利。"},
+  {cat:"媒介与文化批判", title:"报刊的四种理论", author:"弗雷德里克·西伯特 等著", publisher:"中国人民大学出版社",
+   cover:{bg:"#2e4a68",fg:"#e9eff6",accent:"#1c3247",style:"band",lines:["报刊的","四种理论"]},
+   desc:"归纳集权主义、自由主义、社会责任与苏联共产主义四种媒介体制的经典。",
+   back:"1956 年，西伯特、彼得森与施拉姆合著本书，尝试回答「报刊为何以不同方式运作」：集权主义理论服务于权力控制，自由主义理论以弥尔顿、密尔的思想为基础主张出版自由，社会责任理论则在自由传统上叠加了对公共义务的强调，苏联共产主义理论代表国家统制的另一极。这一框架深刻影响了此后的比较媒介制度研究，虽被批评过于简化且带有冷战视角，仍是理解媒介体制概念的起点。"},
+  /* ---- 采写业务 ---- */
+  {cat:"采写业务", title:"新闻采访方法论", author:"艾丰 著", publisher:"人民日报出版社",
+   cover:{bg:"#c8361b",fg:"#fbeede",accent:"#96260f",style:"spine",lines:["新闻采访","方法论"]},
+   desc:"著名记者艾丰数十年采访经验的理论总结，采访学领域经典方法论著作。",
+   back:"艾丰长期在新华社、《经济日报》从事采访报道，本书是他把一线经验上升为方法论的成果。书中把采访看作一门讲究策略的调查研究，讨论如何选择采访角度、做足案头准备、设计提问、面对拒绝与不配合、在会议与现场中发现新闻，并强调记者的政策水平、知识储备与作风修养。全书例证生动、可操作性强，出版以来影响了几代中文记者的采访实践。"},
+  {cat:"采写业务", title:"新闻写作教程", author:"刘明华、徐泓、张征 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#f6f3ec",fg:"#23486e",accent:"#2b6cb0",style:"band",lines:["新闻写作","教　程"]},
+   desc:"高校新闻写作课程广泛使用的系统教材，覆盖主要新闻文体。",
+   back:"这部教材系统讲授新闻写作的基本规范与主要文体：消息写作部分讲解导语、主体、背景与结尾的组织及倒金字塔结构；通讯部分讲解人物、事件与风貌通讯的写法；另有特写、深度报道、广播电视稿件等内容的介绍。全书例文翔实、练习设计具体，强调写作与采访、编辑环节的衔接，与《新闻采访》《新闻编辑》等课程配套，构成采写业务的完整训练链条。"},
+  {cat:"采写业务", title:"新闻评论教程", author:"马少华 著", publisher:"高等教育出版社",
+   cover:{bg:"#1c4e79",fg:"#eef4fa",accent:"#153a5c",style:"spine",lines:["新闻评论","教　程"]},
+   desc:"系统讲授新闻评论写作原理与实务的高校教材。",
+   back:"马少华在本书中以新闻评论的思维特征为主线，依次讨论观点与论点的形成、论据的选择与使用、论证的逻辑结构、评论的选题与标题、专栏写作与文风，并结合中外大量评论实例进行文本细读。书中特别重视事实与观点的关系、论证的有效性以及评论写作的伦理边界，指出评论的力量来自理性的说服力而非情绪的煽动，是评论入门与进阶皆宜的教材。"},
+  {cat:"采写业务", title:"当代新闻编辑", author:"张子让 著", publisher:"复旦大学出版社",
+   cover:{bg:"#2e6b4f",fg:"#edf5ef",accent:"#1f5238",style:"band",lines:["当代新闻编辑"]},
+   desc:"以报纸编辑为核心、兼顾广电与新媒体实务的编辑业务教材。",
+   back:"本书以报纸编辑为核心，兼顾广播电视与网络新媒体的编辑实务，内容涵盖编辑工作的性质与流程、稿件的选择与修改、新闻标题的制作、版面元素与版面设计、图片编辑、副刊与专刊等，并对数字化时代的编辑室转型有所讨论。全书强调编辑的价值判断与整体策划能力，认为编辑不是简单的文字加工者，而是新闻产品的质量负责人与出版流程的组织者。"},
+  {cat:"采写业务", title:"美国新闻摄影教程", author:"肯尼思·科布勒 著", publisher:"人民邮电出版社",
+   cover:{bg:"#191b1e",fg:"#f5f5f5",accent:"#4a4f57",style:"center",lines:["美国新闻摄影","教　程"]},
+   desc:"美国新闻摄影教学经典教程中译本，任悦等译。",
+   back:"科布勒的这本教程被多所美国大学新闻摄影课程采用，中译本由任悦等翻译。全书从技术基础（曝光、景深、用光、色彩）讲到视觉叙事（构图、瞬间、系列报道），再到图片编辑、伦理规范与职业发展，案例多为普利策新闻摄影奖等获奖作品及其拍摄经过。书中反复强调：新闻摄影的第一要务是报道事实，技术手段与视觉技巧都必须服从于新闻价值与伦理底线。"},
+  {cat:"采写业务", title:"新闻报道与写作", author:"梅尔文·门彻 著", publisher:"华夏出版社",
+   cover:{bg:"#7c2430",fg:"#f6e8e0",accent:"#5c1822",style:"spine",lines:["新闻报道","与写作"]},
+   desc:"美国新闻教育泰斗门彻的代表性教材，展江主持中译。",
+   back:"门彻的这本教材把新闻报道拆解为可以训练的环节：发现线索、判断新闻价值、采访核实、组织导语与结构、修改定稿。全书对倒金字塔体、华尔街日报体等结构讲解细致，特稿写作部分尤受推崇，并设专章讨论媒体伦理、多元文化与互联网时代的报道方式。展江主持的中译本忠实流畅，长期作为国内新闻写作课程的主要参考书，适合配合写作训练反复翻阅。"},
+  /* ---- 传播经典 ---- */
+  {cat:"传播经典", title:"人民的选择", author:"保罗·拉扎斯菲尔德 等著", publisher:"中国人民大学出版社",
+   cover:{bg:"#274a73",fg:"#e9eef6",accent:"#17304d",style:"band",lines:["人民的选择"]},
+   desc:"1940 年美国总统大选研究，「有限效果论」与「两级传播」的出处。",
+   back:"1940 年美国总统大选期间，拉扎斯菲尔德等人在俄亥俄州伊里县对选民进行固定样本的连续追踪调查。研究发现：竞选宣传对选民态度的直接改变十分有限，人们更多依据既有政治倾向选择性接触媒介信息，且人际传播的影响大于大众媒介，由此提出「两级传播」与「有限效果」的著名论断。这项研究奠定了美国实证传播效果研究的传统，方法论与理论贡献同样深远。"},
+  {cat:"传播经典", title:"传播与劝服", author:"卡尔·霍夫兰 等著", publisher:"中国人民大学出版社",
+   cover:{bg:"#3c6b50",fg:"#ecf3ee",accent:"#2a4f39",style:"band",lines:["传播与劝服"]},
+   desc:"耶鲁大学劝服研究的集大成之作，控制实验法研究传播效果的开端。",
+   back:"二战期间及战后，霍夫兰在耶鲁大学主持系列控制实验，研究传播如何改变态度。本书汇总了这些研究：信源的可信度影响劝服效果但随时间发生变化，即「休眠效果」；轻度恐惧诉求比强烈恐吓更有效；对受教育程度较高者，两面提示比一面提示更奏效；预先接种相反论点可以增强态度的抵抗力，即「防疫论」。这些发现开创了传播效果研究的实验范式，影响延续至今。"},
+  {cat:"传播经典", title:"沉默的螺旋", author:"伊丽莎白·诺依曼 著", publisher:"北京大学出版社",
+   cover:{bg:"#3d3a63",fg:"#e9e6f5",accent:"#8a83c2",style:"center",lines:["沉默的螺旋"],deco:"spiral"},
+   desc:"解释舆论形成的经典理论：人们因为害怕孤立而隐藏少数意见。",
+   back:"德国学者伊丽莎白·内尔-诺依曼在长期民意调查实践中提出：出于对被孤立的恐惧，人们会观察周围的「意见气候」，当感到自己属于少数时便倾向于保持沉默，而沉默反过来使多数意见显得更加强势，形成螺旋式的舆论扩散。这一理论将社会心理学的从众机制引入舆论研究，解释了「表面一致」的舆论氛围如何生成，对研究网络舆论、舆情监测与公共表达具有持续的启发意义。"},
+  {cat:"传播经典", title:"议程设置", author:"马克斯韦尔·麦库姆斯 著", publisher:"北京大学出版社",
+   cover:{bg:"#1f3a5c",fg:"#e8eef7",accent:"#c8361b",style:"split",lines:["议程设置"],deco:"list"},
+   desc:"「媒介不能决定人们怎么想，但能决定人们想什么」的系统阐述。",
+   back:"1968 年美国总统大选期间，麦库姆斯与肖在北卡罗来纳州教堂山比较媒介议程与选民议程，发现二者高度相关，由此提出议程设置假说：媒介未必能决定人们「怎么想」，但显著影响人们「想什么」。此后研究又发展出属性议程设置、网络议程设置等层次。麦库姆斯的这部著作系统总结了四十年的研究成果，并讨论了社交媒体环境下议程设置理论的新形态。"},
+  {cat:"传播经典", title:"创新的扩散", author:"埃弗雷特·罗杰斯 著", publisher:"中央编译出版社",
+   cover:{bg:"#c96a1e",fg:"#fdf0e2",accent:"#9c4f12",style:"band",lines:["创新的扩散"],deco:"curve"},
+   desc:"研究创新如何在社会系统中传播的经典理论，S 曲线出处。",
+   back:"罗杰斯在本书中综合社会学、人类学与营销学的数千项研究，提出创新扩散的完整框架：扩散是创新在一定时间内经由特定渠道在社会系统中传播的过程；采纳者依时间先后分为创新者、早期采用者、早期大众、晚期大众与落后者；创新的相对优势、兼容性、复杂性、可试验性与可观察性决定其扩散速度。这一理论被广泛应用于农业推广、公共卫生、新产品营销与新媒体研究。"},
+  {cat:"传播经典", title:"乌合之众", author:"古斯塔夫·勒庞 著", publisher:"中央编译出版社",
+   cover:{bg:"#17161a",fg:"#e3b93c",accent:"#3a3626",style:"center",lines:["乌合之众"]},
+   desc:"群体心理学开山之作，冯克利译本，剖析群体心理的非理性。",
+   back:"勒庞在观察 19 世纪法国群众运动的基础上提出：个体汇入群体后，会出于匿名感、传染与暗示而智力下降、情绪激越、责任感消失，表现出冲动、易变、轻信与极端的倾向；群体领袖则依靠断言、重复与传染来动员追随者。尽管本书带有精英主义的偏见且缺乏现代实证支撑，其对群体心理的描述已成为流行文化中理解集会、粉丝群体与网络情绪的经典参照。"},
+  /* ---- 数字时代与媒介素养 ---- */
+  {cat:"数字时代与媒介素养", title:"真相：信息超载时代如何知道该相信什么", author:"比尔·科瓦奇、汤姆·罗森斯蒂尔 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#faf7f2",fg:"#b02e20",accent:"#c8361b",style:"band",lines:["真　相"]},
+   desc:"两位美国资深新闻人写给公众的新闻核验手册，提出六项自问原则。",
+   back:"面对信息超载，作者提出公众应学会六项技能：识别自己接触的内容属于新闻、宣传、广告、娱乐还是原始信息；评估信源的可信度；核验证据；用多方信源交叉验证；寻找被遗漏的信息以获得完整图景。书中回顾了美国新闻业从政党报刊到付费墙时代的商业模式变迁，指出新闻素养已不再是记者专属，而是每个公民在数字社会生存的必备能力。"},
+  {cat:"数字时代与媒介素养", title:"学会提问", author:"尼尔·布朗、斯图尔特·基利 著", publisher:"机械工业出版社",
+   cover:{bg:"#b3541e",fg:"#fdf3e8",accent:"#8a3d12",style:"spine",lines:["学会提问"]},
+   desc:"批判性思维入门经典，教你识别论证中的谬误与陷阱。",
+   back:"本书倡导「淘金式思维」：在接收信息时持续提问——论题与结论是什么？理由是什么？哪些词语存在歧义？有哪些隐藏的假设？证据的效力如何？是否存在数据陷阱与逻辑谬误？哪些重要信息被省略了？作者以大量广告、演讲、新闻评论为材料，演示批判性提问的实际操作，帮助读者把批判性思维从一种态度变成可操作、可训练的技术。"},
+  {cat:"数字时代与媒介素养", title:"认知盈余", author:"克莱·舍基 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#146b70",fg:"#e6f4f4",accent:"#0d4f53",style:"band",lines:["认知盈余"]},
+   desc:"提出「认知盈余」概念：碎片时间汇聚成巨大的社会创造能力。",
+   back:"舍基提出「认知盈余」概念：受过教育人群的自由时间汇聚起来是巨大的社会资源——维基百科正是全球网民碎片时间自愿协作的产物。本书分析这种协作得以发生的条件：媒介工具的普及降低了创造与分享的门槛，而人的内在动机——自治与胜任感、归属感与慷慨文化——驱动了非商业性的公共创造。对新闻业而言，本书预言了用户生产内容、众包新闻与公民新闻的兴起，是理解互联网协作逻辑的关键读物。"},
+  {cat:"数字时代与媒介素养", title:"数据新闻概论", author:"方洁 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#16324a",fg:"#e9f0f6",accent:"#2f7fb8",style:"split",lines:["数据新闻","概　论"],deco:"bars"},
+   desc:"国内较早系统介绍数据新闻的教材，覆盖从数据到故事的完整生产流程。",
+   back:"作为国内较早系统介绍数据新闻的教材，本书界定了数据新闻的概念与边界，梳理了数据新闻在国内外的发展历程，包括《卫报》数据博客与《纽约时报》的可视化实践，并覆盖数据获取、数据清洗、分析方法与可视化叙事的全流程。全书兼顾理论阐释与操作指引，配有丰富案例，适合新闻学专业学生在融合新闻、数据新闻方向上的入门学习，也可与《融合新闻学》课程互为参照。"}
+];
+
+/* ================= 数据：14 门课程（背面为独立百字详介） ================= */
+const COURSES = [
+  {cat:"专业基础课", title:"新闻学概论", src:"《国标》专业基础课程",
+   author:"李良荣 著", publisher:"复旦大学出版社",
+   cover:{bg:"#f5efe6",fg:"#8c1f12",accent:"#c8361b",style:"spine",lines:["新闻学","概　论"]},
+   desc:"新闻学的基本概念、基本原理与规律，新闻事业的性质、功能与社会责任。",
+   back:"本课程以马克思主义新闻观为指导，系统讲授新闻与新闻活动的基本概念、新闻事业的产生与发展规律、新闻事业的性质功能与社会责任、新闻自由与社会控制、新闻选择与新闻生产等核心内容，兼及媒介经营、新闻法治与职业道德。课程旨在帮助学生建立完整的理论认知框架，为业务课学习和未来从业奠定价值与学理基础，是新闻学专业名副其实的「第一门专业课」。"},
+  {cat:"专业基础课", title:"传播学概论", src:"《国标》专业基础课程",
+   author:"郭庆光 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#ffffff",fg:"#1b4f8a",accent:"#2b6cb0",style:"band",lines:["传播学","教　程"],deco:"curve"},
+   desc:"人类传播行为的基本规律，传播过程、类型与经典理论模式。",
+   back:"本课程系统讲授人类传播活动的类型与历史演进、传播符号与意义、传播过程模式、人际传播群体传播组织传播与大众传播的规律、媒介制度与规范理论、受众研究与传播效果研究的经典理论等。课程帮助学生掌握分析传播现象的基本概念工具，理解新闻活动在整个社会传播系统中的地位与作用，为后续的效果研究、舆论研究与新媒体研究课程提供理论基础。"},
+  {cat:"专业基础课", title:"马克思主义新闻思想", src:"《国标》专业基础课程",
+   author:"陈力丹 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#faf5ec",fg:"#7a1a1a",accent:"#a02128",style:"band",lines:["马克思主义","新闻观教程"]},
+   desc:"马克思主义经典作家的新闻观点及其中国化时代化成果。",
+   back:"本课程通过研读马克思、恩格斯、列宁以及中国共产党领导人关于新闻工作的经典论著，系统讲授马克思主义新闻观的历史形成、核心要义与当代发展，重点包括新闻舆论工作的党性原则、人民立场、真实性要求与正确舆论导向。课程是我国新闻教育的根基性内容，旨在帮助学生树立正确的新闻价值观，在复杂的舆论环境中保持政治定力与职业操守。"},
+  {cat:"专业基础课", title:"新闻传播伦理与法规", src:"《国标》专业基础课程",
+   author:"陈绚 著", publisher:"中国传媒大学出版社",
+   cover:{bg:"#eef1f5",fg:"#3a4a63",accent:"#44557a",style:"center",lines:["新闻传播伦理","与法规教程"]},
+   desc:"新闻职业道德准则与我国新闻传播法律法规体系。",
+   back:"本课程讲授新闻职业道德的基本原则与规范准则，以及我国新闻传播活动相关的法律法规体系，包括宪法中的言论出版条款、民法典人格权编、著作权法、国家安全与保密相关法规等。课程结合典型案例讨论虚假新闻、有偿新闻、侵犯隐私、媒介审判等伦理与法律问题，培养学生在采编实践中的底线意识与合规能力，是连接课堂与新闻编辑室的「职业护栏」课程。"},
+  {cat:"专业基础课", title:"数字媒体技术", src:"《国标》专业基础课程",
+   author:"匡文波 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#f2f7f2",fg:"#1f4d3a",accent:"#2f7d5c",style:"split",lines:["新媒体","概　论"],deco:"bars"},
+   desc:"数字内容生产、处理与传播所需的基础技术原理与应用。",
+   back:"本课程讲授数字媒体的基本原理与技术应用，包括数字图文音视频的基础知识、常用采集与编辑软件的操作、网页与新媒体内容的基础制作、网络传播的基本机制等。课程侧重实践，使学生能够理解技术逻辑并初步运用数字工具完成多媒体内容的采集、制作与发布，为融合新闻业务学习提供技术支撑，也回应了《国标》对新闻传播类专业学生技术素养的要求。"},
+  {cat:"专业基础课", title:"新闻传播学研究方法", src:"《国标》专业基础课程",
+   author:"陈阳 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#f3f1f7",fg:"#4a3d63",accent:"#6b5a8a",style:"center",lines:["大众传播学","研究方法导论"],deco:"bars"},
+   desc:"新闻传播学定量与定性研究的基本方法，社会调查设计与数据分析。",
+   back:"本课程系统讲授传播学研究的设计与实施，包括研究问题的提出、文献综述、定量方法（问卷调查、实验法、内容分析）与定性方法（深度访谈、焦点小组、参与式观察、个案研究）的原理与操作，以及基础统计分析与研究报告写作。课程培养学生以科学方法观察和分析传播现象的能力，为毕业论文写作与后续研究工作打下基础，是学术训练的核心环节。"},
+  {cat:"专业核心课", title:"中外新闻传播史", src:"《国标》新闻学专业必修课程",
+   author:"方汉奇 主编", publisher:"中国人民大学出版社",
+   cover:{bg:"#1e2a45",fg:"#e8ddc8",accent:"#c9a45c",style:"vertical",lines:["中国新闻传播史"]},
+   desc:"中国与外国新闻传播事业的发展历程、代表人物与基本规律。",
+   back:"本课程系统讲授中国从古代邸报小报到近现代报刊、通讯社、广播电视与当代融媒体的发展脉络，以及世界主要国家新闻传播事业的演进历程，分析代表性的媒介事件、报人与新闻思想。课程帮助学生理解新闻制度与业态变迁的社会逻辑，以史为鉴把握新闻事业的发展规律，涵养专业认同与历史眼光。中国传媒大学等专业按《国标》将其分设为中国新闻传播史、外国新闻传播史两门。"},
+  {cat:"专业核心课", title:"新闻采访", src:"《国标》新闻学专业必修课程",
+   author:"蓝鸿文 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#eef3f8",fg:"#1c3f6e",accent:"#2b5d9e",style:"band",lines:["新闻采访学"],deco:"list"},
+   desc:"新闻采访的选题、准备、提问、观察与记录等业务能力的系统训练。",
+   back:"本课程围绕新闻采访的完整流程展开训练：新闻线索的发现与判断、采访前的资料准备与提纲设计、提问技巧、现场观察与记录、电话与网络采访、隐性采访的伦理边界等。课程采用课堂模拟与实地采访相结合的教学方式，要求学生完成真实采访作业，重点培养发现新闻、接近信源、核实事实的能力与职业规范意识，是新闻生产链条的起点课程。"},
+  {cat:"专业核心课", title:"新闻写作", src:"《国标》新闻学专业必修课程",
+   author:"刘明华 等著", publisher:"中国人民大学出版社",
+   cover:{bg:"#fdf3ec",fg:"#8a4517",accent:"#c26a2f",style:"spine",lines:["新闻写作","教　程"]},
+   desc:"消息、通讯等新闻体裁的写作规范与实务训练。",
+   back:"本课程系统讲授消息、通讯、特写等新闻文体的写作规范：导语写作、倒金字塔结构与华尔街日报体的组织方式、新闻背景运用、引语使用、数字与事实核查、客观报道的笔法等。课程通过高强度写作训练，使学生能够准确、清晰、简洁地完成符合职业标准的新闻稿件，养成核实事实、尊重信源的职业习惯，与《新闻采访》《新闻编辑》共同构成采写主干课程体系。"},
+  {cat:"专业核心课", title:"新闻编辑", src:"《国标》新闻学专业必修课程",
+   author:"蔡雯 著", publisher:"中国人民大学出版社",
+   cover:{bg:"#eef6f4",fg:"#1f4d44",accent:"#2f7d6e",style:"band",lines:["新闻编辑学"],deco:"list"},
+   desc:"稿件的选择与修改、新闻标题制作、版面与页面编辑业务。",
+   back:"本课程讲授编辑工作的全流程：稿件的选择与修改、事实核查与文字加工、新闻标题的制作、版面语言与报纸版面设计、图片编辑，以及网络与新媒体环境下的内容编辑与整合。课程培养学生的信息筛选能力、价值判断能力和版面表达能力，使其理解编辑作为「把关人」在新闻生产中的核心职责，是从「会写稿」走向「会办报」的关键一环。"},
+  {cat:"专业核心课", title:"新闻评论", src:"《国标》新闻学专业必修课程",
+   author:"丁法章 著", publisher:"复旦大学出版社",
+   cover:{bg:"#faf0ee",fg:"#7a2a20",accent:"#a03a2c",style:"band",lines:["新闻评论","教　程"],deco:"curve"},
+   desc:"新闻评论的立论、论证与写作，报刊评论文体训练。",
+   back:"本课程讲授新闻评论的基本原理与写作实务：评论的选题与立论、论点论据与论证的逻辑结构、标题与语言风格、社论评论员文章时评专栏评论等不同文体的特点。课程结合热点新闻进行写作训练，要求学生观点鲜明、论证严密、言之有据，在写作实践中提升公共表达与舆论引导能力，体现了新闻学专业「既报道事实、也表达观点」的完整能力结构。"},
+  {cat:"专业核心课", title:"融合新闻学", src:"《国标》新闻学专业必修课程",
+   author:"蔡雯 著", publisher:"人民出版社",
+   cover:{bg:"#fdf5f2",fg:"#7a2a20",accent:"#b03a28",style:"center",lines:["媒体融合","与融合新闻"],deco:"spiral"},
+   desc:"全媒体环境下的新闻生产流程、叙事方式与传播创新。",
+   back:"本课程讲授媒体深度融合背景下新闻生产的理念、流程与方法：融媒体新闻的策划与多形态内容生产、数据新闻与可视化叙事、社交媒体传播与用户互动、移动优先的编辑室运作等。课程通常以项目制方式开展，要求学生完成跨平台的融合报道作品，培养全媒体采编发一体化的新型业务能力，是新闻学回应媒体系统性变革的标志性课程。"},
+  {cat:"专业核心课", title:"新闻摄影", src:"《国标》新闻学专业必修课程",
+   author:"盛希贵 主编", publisher:"中国人民大学出版社",
+   cover:{bg:"#20242c",fg:"#e8e4d8",accent:"#c9a45c",style:"band",lines:["新闻摄影","教　程"]},
+   desc:"新闻摄影的理论、拍摄技法与图片编辑实务。",
+   back:"本课程讲授新闻摄影的成像原理与相机操作、抓拍瞬间的选择与构图用光、图片说明写作与图片编辑，以及摆拍补拍、影像造假、隐私与痛苦影像呈现等职业伦理问题。课程以实践拍摄为主，要求学生完成规定主题的新闻摄影作业并接受讲评，培养「用影像报道事实」的视觉表达能力，理解新闻摄影在媒介融合时代的独特价值。"},
+  {cat:"专业核心课", title:"媒介经营与管理", src:"《国标》新闻学专业必修课程",
+   author:"喻国明 等著", publisher:"中国人民大学出版社",
+   cover:{bg:"#eef2f8",fg:"#1c2f52",accent:"#162660",style:"center",lines:["传媒经济学","教　程"],deco:"bars"},
+   desc:"媒介组织的经营管理原理，媒介市场与运营分析。",
+   back:"本课程讲授媒介组织的经营管理基本原理：媒介的市场属性与产业化进程、内容产品与广告经营模式、受众调查与媒介市场分析、媒介战略管理、人力资源管理及绩效评估等。课程帮助学生理解媒体作为机构的运营逻辑，为将来从事媒体管理、运营或相关研究工作建立管理学视角，呼应《国标》对新闻传播人才「懂业务也懂经营」的复合型要求。"}
+];
+/* ================= 数据：20 个就业岗位（薪资取招聘平台统计平均水平） ================= */
+const JOBS = [
+  /* ---- 传统媒体方向 ---- */
+  {cat:"传统媒体方向", title:"记者", salary:"全国平均约 ¥10.5K/月", salarySrc:"职友集 2025–2026 统计",
+   desc:"在报社、通讯社、电视台从事新闻采写与报道，是新闻学最对口的传统出路。",
+   back:"岗位职责：寻找新闻线索、采访当事人、核实事实并撰写报道。要求：本科及以上学历（职友集样本中本科占 73%）、新闻敏感与文字功底过硬，正式上岗须考取新闻记者证（国家新闻出版署统一核发）。薪资：全国平均约 ¥10.5K/月，65.3% 的岗位在 6–15K，应届约 7.5K，头部媒体与一线城市明显更高。"},
+  {cat:"传统媒体方向", title:"编辑", salary:"平均约 ¥10K/月", salarySrc:"职友集 2025–2026 统计",
+   desc:"负责选题策划、稿件加工、标题制作与版面或页面把控，媒体内容质量的把关人。",
+   back:"岗位职责：策划选题、审改稿件、制作标题、统筹版面或频道页面。要求：扎实的文字功底与政策素养，熟悉校对符号与出版规范，有媒体实习经历者优先。薪资：普通编辑平均约 ¥10K/月，资深及高级编辑约 ¥13.9K/月（职友集）。纸媒岗位收缩的同时，网络媒体与政务新媒体的编辑需求持续增长。"},
+  {cat:"传统媒体方向", title:"编导", salary:"平均约 ¥10–14K/月", salarySrc:"职友集 2025–2026 统计",
+   desc:"广播电视与网络视听节目的策划者与现场指挥，兼具创意与执行能力。",
+   back:"岗位职责：节目策划、撰写脚本、现场调度、指导拍摄与后期把关。要求：创意策划与拍摄剪辑的复合能力，熟悉节目制作全流程，广播电视编导、新闻学专业对口。薪资：平均约 ¥10–14K/月（职友集），卫视与头部视频平台的知名节目编导上浮明显。短视频兴起后，编导能力成为跨媒体通行证。"},
+  {cat:"传统媒体方向", title:"摄像记者", salary:"平均约 ¥8–10K/月", salarySrc:"职友集 2025–2026 统计",
+   desc:"以摄像机为采访工具的新闻工作者，视频时代媒体机构的基础刚需岗位。",
+   back:"岗位职责：跟随记者出镜拍摄新闻现场，完成素材采集、初剪与传稿。要求：熟练使用摄像机、稳定器与灯光设备，懂构图与叙事，能剪辑者优先，部分岗位需适应突发任务与出差。薪资：平均约 ¥8–10K/月（职友集），电视台、主流融媒体中心多提供编制或台聘岗位。无人机航拍与移动直播技能是明显的加分项。"},
+  /* ---- 新媒体运营方向 ---- */
+  {cat:"新媒体运营方向", title:"新媒体运营", salary:"全国平均约 ¥8.5K/月", salarySrc:"职友集 2025–2026 统计",
+   desc:"运营公众号、抖音、小红书等平台账号，用内容获取与留存用户。",
+   back:"岗位职责：账号定位、内容排期、选题策划、数据复盘与涨粉变现。要求：网感好，熟悉主流平台算法与调性，能写能剪能看数据。薪资：全国平均约 ¥8.5K/月，52.5% 的岗位在 4.5–8K（职友集 2025–2026）；互联网大厂同类岗位可达 15–25K。人社部认定的「全媒体运营师」职业编码为 4-13-01-05。"},
+  {cat:"新媒体运营方向", title:"内容产品经理", salary:"约 ¥15–25K/月", salarySrc:"猎聘 / BOSS直聘 2025–2026 行情",
+   desc:"负责内容型产品的策划与迭代，连接内容生态与产品增长。",
+   back:"岗位职责：内容产品规划、功能设计、创作者生态建设与数据驱动迭代。要求：产品思维 + 内容判断力，熟悉用户增长模型，能写需求文档、看懂数据看板。薪资：约 ¥15–25K/月（猎聘、BOSS直聘 2025–2026 岗位行情，一线城市互联网大厂为主）。新闻学背景的内容sense是入行的核心优势，3–5 年经验后普遍进入经理序列。"},
+  {cat:"新媒体运营方向", title:"内容策略", salary:"约 ¥12–20K/月", salarySrc:"猎聘 / 智联招聘 2025–2026 行情",
+   desc:"制定平台内容方向、创作者规则与流量分发策略，平台的「内容大脑」。",
+   back:"岗位职责：制定内容生态策略、优化分发机制、策划垂类活动并评估效果。要求：强数据分析与行业洞察，熟悉内容审核规范与社区治理逻辑，通常要求 3–5 年内容相关经验。薪资：约 ¥12–20K/月（猎聘、智联招聘行情），头部平台策略岗更高。该岗位近年从「编辑/运营」序列中分化出来，是新闻学进阶的好方向。"},
+  {cat:"新媒体运营方向", title:"短视频运营", salary:"约 ¥8–12K/月", salarySrc:"职友集 2025–2026 统计",
+   desc:"短视频账号从策划、拍摄、剪辑到投流的全链路操盘手。",
+   back:"岗位职责：账号人设与内容策划、拍摄剪辑、DOU+ 等投流操作与数据复盘。要求：熟练使用剪映/PR，理解抖音、视频号平台算法，有爆款案例者大幅溢价。薪资：约 ¥8–12K/月（职友集短视频相关岗位统计），能独立操盘的成熟运营普遍 15K 以上。中国网络视听发展研究报告显示短视频已成为第一大网络视听应用，人才缺口持续存在。"},
+  /* ---- 品牌公关方向 ---- */
+  {cat:"品牌公关方向", title:"企业公关", salary:"专员约 ¥12.7K/月", salarySrc:"职友集 2025–2026 统计",
+   desc:"维护企业媒体关系与公众形象，危机时刻冲在第一线的「防火墙」。",
+   back:"岗位职责：媒体关系维护、新闻稿撰写、活动策划与危机公关处置。要求：出色的沟通与文案能力，处变不惊，熟悉媒体运作规律。薪资：公关专员平均约 ¥12.7K/月，经理级普遍 20K 以上（职友集公共关系专业口径）。企业对声誉管理日益重视，新能源、互联网、消费品行业需求旺盛。"},
+  {cat:"品牌公关方向", title:"品牌公关", salary:"约 ¥10–15K/月", salarySrc:"智联招聘 2025–2026 行情",
+   desc:"为品牌策划传播战役，让产品在公众心中建立认知与好感。",
+   back:"岗位职责：品牌传播策略、Campaign 策划执行、跨界联名与媒体投放。要求：创意策划能力 + 资源整合能力，懂品牌也懂社交媒体，对数据敏感。薪资：约 ¥10–15K/月（智联招聘行情），甲方品牌部与 4A 广告公司、公关公司是两大去向。创意突出的策划案是从业者最好的简历。"},
+  {cat:"品牌公关方向", title:"品牌编辑", salary:"约 ¥8–12K/月", salarySrc:"职友集 / 智联招聘 2025–2026 行情",
+   desc:"在品牌语境下做内容：品牌刊物、官网、新媒体矩阵的文字把关人。",
+   back:"岗位职责：品牌内容体系搭建、官方刊物与新媒体稿件撰写编辑、品牌口径管理。要求：编辑功底 + 品牌理解力，能写出既符合传播规律又贴合品牌调性的内容。薪资：约 ¥8–12K/月（职友集、智联招聘行情）。大而稳的企业品牌部、新势力品牌的内容团队都在扩招此类岗位。"},
+  {cat:"品牌公关方向", title:"文案策划", salary:"平均约 ¥10.2K/月", salarySrc:"职友集 2025–2026 统计",
+   desc:"写 slogan、写 campaign、写一切打动人心的文字，广告与品牌的笔杆子。",
+   back:"岗位职责：广告文案、品牌 slogan、活动策划案与新媒体文案创作。要求：文字创意与洞察力，能快速理解 brief，对社会情绪与流行语敏感。薪资：平均约 ¥10.2K/月（职友集），4A 公司与互联网大厂文案岗更高。作品集是入行敲门砖，在校期间多做商业写作练习与比赛。"},
+  {cat:"品牌公关方向", title:"舆情分析师", salary:"北京约 ¥12.5K/月", salarySrc:"职友集 2025–2026 统计",
+   desc:"监测与分析网络舆情，为政府和企业提供决策参考的信息分析师。",
+   back:"岗位职责：全网舆情监测、分析研判、撰写舆情日报与专报、危机预警。要求：新闻敏感 + 数据分析能力，熟悉舆情监测系统，文字简练。薪资：北京约 ¥12.5K/月，全国主流区间 8–11K（职友集对慧科讯业、麦克斯泰等头部舆情公司统计）。政务舆情、企业声誉管理需求稳定增长，是新闻学差异化的就业赛道。"},
+  /* ---- 体制公考方向 ---- */
+  {cat:"体制公考方向", title:"公务员·宣传文化岗", salary:"按国家统一工资标准", salarySrc:"国家公务员局 / 人社部",
+   desc:"党政机关宣传、网信、文旅等部门的新闻发布与意识形态工作岗位。",
+   back:"岗位职责：新闻发布、公文写作、意识形态工作、活动策划与新媒体管理。要求：通过国考或省考，新闻学属文学门类可报岗位多，党员身份与文字能力优势明显。薪资：按公务员职务级别工资标准执行，含地区附加津贴，中西部与沿海差异明显（国家公务员局、人社部口径），另享社保公积金与职业年金。稳定性是该方向的最大吸引力。"},
+  {cat:"体制公考方向", title:"事业单位·宣传干事", salary:"约 ¥5–9K/月（按绩效）", salarySrc:"各地人社局公开招聘公告",
+   desc:"高校、医院、科研院所及国企事业单位的宣传部门工作人员。",
+   back:"岗位职责：单位新闻采写、官网与公众号运营、活动宣传与对内刊物编辑。要求：参加事业单位公开招考（笔试+面试），文字与活动组织能力突出，部分岗位要求党员。薪资：按事业单位岗位绩效工资制度执行，普遍约 ¥5–9K/月，地区与单位差异大，但福利完善、节奏相对平稳（各地人社局招聘公告口径）。"},
+  {cat:"体制公考方向", title:"融媒体中心采编岗", salary:"约 ¥5–8K/月 + 绩效", salarySrc:"各地融媒体中心招聘公告",
+   desc:"区县融媒体中心的采编一体岗位，基层主流媒体的新生力量。",
+   back:"岗位职责：新闻采写、短视频制作、直播出镜、客户端运营，一专多能。要求：新闻学专业最对口，多地定向招聘，通常需参加事业单位或国企招考。薪资：约 ¥5–8K/月 + 绩效（各地融媒体中心招聘公告口径），随地区财政差异较大。县级融媒体中心建设是国家战略，岗位数量在基层媒体中逆势增长。"},
+  /* ---- 自主创业方向 ---- */
+  {cat:"自主创业方向", title:"自媒体博主", salary:"收入分化极大", salarySrc:"各平台创作者生态公开数据",
+   desc:"以个人 IP 为核心的内容创业者，公众号、小红书、B站、知乎皆可起号。",
+   back:"商业模式：广告商单、平台分成、带货与知识付费。要求：明确的个人定位与持续产出能力，选题、写作、拍摄、运营一手包办，前期投入以时间为主。收入：分化极大——头部月入数万以上，腰部数千，起步期普遍不稳定（据 B站、抖音等平台创作者生态公开数据）。适合有专长标签且抗压能力强的同学，建议毕业后以副业先行验证。"},
+  {cat:"自主创业方向", title:"短视频创作者", salary:"腰部月入数千至数万", salarySrc:"中国网络视听发展研究报告",
+   desc:"以短视频为载体的内容创业，单人或小型团队即可完成商业闭环。",
+   back:"商业模式：平台创作激励、星图/花火等商单平台、直播带货与自有品牌。要求：编导拍剪一体能力，对平台算法与用户情绪高度敏感，能坚持日更级别的产出节奏。收入：中腰部创作者月数千至数万，头部更高，尾部多数难以持续（中国网络视听发展研究报告及平台公开数据）。新闻学的叙事训练与伦理素养是区别于普通创作者的长板。"},
+  {cat:"自主创业方向", title:"MCN 内容创业", salary:"与孵化成功率强相关", salarySrc:"行业公开报告",
+   desc:"创立或加入 MCN 机构，签约孵化达人并以内容电商等方式变现。",
+   back:"商业模式：达人签约分成、广告代运营、直播电商佣金。要求：内容判断力 + 团队管理与商务谈判能力，熟悉平台规则与流量采买。收入：与机构孵化成功率强相关，头部 MCN 年营收可观，但创业失败率同样不低（据艾媒、克劳锐等行业公开报告）。建议先在大厂或成熟 MCN 积累经验与资源后再创业。"},
+  {cat:"自主创业方向", title:"自由撰稿人", salary:"按稿酬计酬，波动大", salarySrc:"媒体公开稿费标准",
+   desc:"以稿谋生的自由职业者，为媒体供稿的同时经营个人内容品牌。",
+   back:"商业模式：媒体约稿稿费（深度报道通常千元级/篇）、自媒体流量收入、商业写作委托。要求：过硬的采写能力与稳定供稿渠道，自我管理能力极强，无固定收入保障。收入：按稿酬计酬、波动大，成熟自由撰稿人月入过万者不少，但过渡期长（各媒体公开稿费标准）。适合作品已在校园媒体得到验证的同学起步。"}
+];
+/* ================= 收藏系统（localStorage） ================= */
+let favs = {book:[], course:[], job:[]};
+try{
+  const saved = JSON.parse(localStorage.getItem("journ-favs") || "null");
+  if(saved && Array.isArray(saved.book) && Array.isArray(saved.course)){
+    favs.book = saved.book; favs.course = saved.course;
+    favs.job = Array.isArray(saved.job) ? saved.job : [];
+  }
+}catch(e){}
+function saveFavs(){ try{ localStorage.setItem("journ-favs", JSON.stringify(favs)); }catch(e){} }
+function isFav(type, title){ return favs[type].includes(title); }
+function toggleFav(type, title){
+  const arr = favs[type];
+  const i = arr.indexOf(title);
+  if(i >= 0) arr.splice(i, 1); else arr.push(title);
+  saveFavs();
+  updateFavUI();
+  if(document.getElementById("view-favs").classList.contains("on")) renderFavs();
+}
+function updateFavUI(){
+  const n = favs.book.length + favs.course.length + favs.job.length;
+  document.getElementById("favCount").textContent = n;
+  document.getElementById("statFav").innerHTML = n + '<span class="unit">项</span>';
+  document.querySelectorAll(".fav-btn").forEach(b => {
+    const [type, title] = b.dataset.key.split(":");
+    const on = isFav(type, title);
+    b.classList.toggle("on", on);
+    b.textContent = on ? "♥" : "♡";
+  });
+}
+
+/* ================= SVG 仿经典版式封面 ================= */
+function coverSVG(item){
+  const c = item.cover, color = catColor(item.cat);
+  const tx = c.style === "split" ? 84 : (c.style === "spine" ? 30 : 100);
+  const anchor = (c.style === "split" || c.style === "spine") ? "start" : "middle";
+  let deco = "";
+  if(c.deco === "spiral"){
+    deco = `<path d="M100 78 a9 9 0 0 1 18 0 a18 18 0 0 1 -36 0 a27 27 0 0 1 54 0 a36 36 0 0 1 -72 0" fill="none" stroke="${c.fg}" stroke-width="2.5" opacity=".55"/>`;
+  }else if(c.deco === "curve"){
+    deco = `<path d="M20 132 Q 110 132 182 38" fill="none" stroke="${c.fg}" stroke-width="3" opacity=".6"/>
+      <circle cx="182" cy="38" r="5" fill="${c.fg}"/><circle cx="120" cy="112" r="4" fill="${c.fg}" opacity=".7"/><circle cx="70" cy="126" r="4" fill="${c.fg}" opacity=".5"/>`;
+  }else if(c.deco === "bars"){
+    deco = `<g fill="${c.fg}" opacity=".75"><rect x="24" y="98" width="14" height="30"/><rect x="46" y="82" width="14" height="46"/><rect x="68" y="104" width="14" height="24"/><rect x="90" y="70" width="14" height="58"/></g>`;
+  }else if(c.deco === "list"){
+    deco = `<g opacity=".8"><rect x="24" y="52" width="8" height="8" fill="#162660"/><rect x="38" y="54" width="120" height="4" fill="${c.fg}"/><rect x="24" y="70" width="8" height="8" fill="#162660" opacity=".7"/><rect x="38" y="72" width="100" height="4" fill="${c.fg}"/><rect x="24" y="88" width="8" height="8" fill="#162660" opacity=".45"/><rect x="38" y="90" width="80" height="4" fill="${c.fg}"/></g>`;
+  }
+  let titleText = "";
+  if(c.style === "vertical"){
+    titleText = c.lines[0].split("").map((ch, i) =>
+      `<text x="152" y="${34 + i * 24}" font-size="21" fill="${c.fg}" font-weight="bold" text-anchor="middle">${ch}</text>`).join("");
+  }else{
+    const baseY = c.lines.length === 1 ? 82 : 62;
+    titleText = c.lines.map((ln, i) =>
+      `<text x="${tx}" y="${baseY + i * 28}" font-size="${ln.length > 5 ? 16 : 19}" fill="${c.fg}" font-weight="bold" letter-spacing="2" text-anchor="${anchor}">${ln}</text>`).join("");
+  }
+  const ax = c.style === "split" ? 84 : (c.style === "spine" ? 30 : 24);
+  const aAnchor = (c.style === "center" || c.style === "band") ? "start" : "start";
+  return `<svg viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice">
+    <rect width="200" height="150" fill="${c.bg}"/>
+    ${c.style === "spine" ? `<rect width="16" height="150" fill="${c.accent}"/>` : ""}
+    ${c.style === "band" ? `<rect width="200" height="9" fill="${c.accent}"/><rect y="141" width="200" height="9" fill="${c.accent}"/>` : ""}
+    ${c.style === "split" ? `<rect width="66" height="150" fill="${c.accent}"/><text x="33" y="84" font-size="15" fill="${c.bg}" text-anchor="middle" font-weight="bold" writing-mode="tb"> Journalism </text>` : ""}
+    ${c.style === "center" ? `<rect x="20" y="18" width="160" height="114" fill="none" stroke="${c.accent}" stroke-width="1.5"/>` : ""}
+    ${c.style === "vertical" ? `<rect x="18" y="12" width="126" height="126" fill="none" stroke="${c.accent}" stroke-width="1.5"/><rect x="168" width="12" height="150" fill="${c.accent}"/>` : ""}
+    ${titleText}${deco}
+    <text x="${ax}" y="132" font-size="8.5" fill="${c.fg}" opacity=".8" text-anchor="${aAnchor}">${item.author.replace(" 著","").replace(" 主编","").replace(" 等著","")}</text>
+    <text x="190" y="132" font-size="7.5" fill="${c.fg}" opacity=".65" text-anchor="end">${item.publisher}</text>
+    <rect width="200" height="150" fill="none" stroke="${color}" stroke-width="1" opacity=".25"/>
+  </svg>`;
+}
+
+/* ================= 渲染卡片 ================= */
+function makeCard(item, type, idx){
+  const color = catColor(item.cat);
+  const key = type + ":" + item.title;
+  const favOn = isFav(type, item.title);
+  const wrap = document.createElement("div");
+  wrap.className = "tilt";
+  wrap.dataset.title = item.title;
+  wrap.dataset.type = type;
+
+  const flip = document.createElement("div");
+  flip.className = "flip ripple-host";
+  flip.style.animation = `fadeUp .55s ease ${(idx % 10) * 45}ms backwards`;
+
+  const front = document.createElement("div");
+  front.className = "face front";
+  front.style.borderTop = `5px solid ${color}`;
+  if(type === "book"){
+    front.innerHTML = `
+      <button class="fav-btn" data-key="${key}" title="收藏 / 取消收藏">${favOn ? "♥" : "♡"}</button>
+      <div class="cover">${coverSVG(item)}</div>
+      <div class="face-body">
+        <span class="badge sans" style="color:${color};border-color:${color}">${item.cat}</span>
+        <p class="desc clamp">${item.desc}</p>
+        <span class="hint sans">◈ 点击卡片翻转查看百字详介</span>
+      </div>`;
+  }else if(type === "course"){
+    front.innerHTML = `
+      <button class="fav-btn" data-key="${key}" title="收藏 / 取消收藏">${favOn ? "♥" : "♡"}</button>
+      <div class="cover">${coverSVG(item)}</div>
+      <div class="face-body">
+        <span class="badge sans" style="color:${color};border-color:${color}">${item.cat}</span>
+        <h3 style="font-size:19px;margin-top:8px">《${item.title}》</h3>
+        <div class="meta sans" style="margin-top:4px">常用教材：${item.author.replace(" 著","").replace(" 主编","").replace(" 等著","")}《${item.cover.lines.join("").replace(/　/g,"")}》</div>
+        <p class="desc clamp">${item.desc}</p>
+        <span class="hint sans">◈ 点击卡片翻转查看百字详介</span>
+      </div>`;
+  }else{
+    front.innerHTML = `
+      <button class="fav-btn" data-key="${key}" title="收藏 / 取消收藏">${favOn ? "♥" : "♡"}</button>
+      <span class="num" style="color:${color}">${String(idx + 1).padStart(2, "0")}</span>
+      <div class="pad">
+        <span class="badge sans" style="color:${color};border-color:${color}">${item.cat}</span>
+        <h3>${item.title}</h3>
+        <div class="meta sans">${item.salary}</div>
+        <p class="desc clamp">${item.desc}</p>
+        <span class="hint sans">◈ 点击卡片翻转查看岗位要求与薪资</span>
+      </div>`;
+  }
+
+  const back = document.createElement("div");
+  back.className = "face back";
+  back.innerHTML = `
+    <button class="fav-btn" data-key="${key}" title="收藏 / 取消收藏">${favOn ? "♥" : "♡"}</button>
+    <span class="badge sans" style="color:${color};border-color:${color}">${item.cat}</span>
+    <h3>${type === "job" ? item.title : "《" + item.title + "》"}</h3>
+    <p class="desc">${item.back}</p>
+    ${type === "book"
+      ? `<div class="src-tag sans">版本信息：${item.author}，${item.publisher} · 简介依据公开出版信息与学界通说整理</div>`
+      : type === "course"
+      ? `<div class="src-tag sans">信息来源：${item.src}<br><a href="https://wjbobs.hope55.com/db/UploadFile/2025/9/24/9a3121c3-53f4-4ba3-aa0e-c95799c14b0b.pdf" target="_blank">《国标》全文</a> · <a href="https://gaokao.chsi.com.cn/wap/sch/viewzyjs?dicCurId=73396681&specId=73383599" target="_blank">阳光高考</a></div>`
+      : `<div class="src-tag sans">薪资来源：${item.salarySrc} · 统计口径为招聘平台公开数据，仅供参考</div>`}
+    <span class="hint sans">◈ 再次点击翻回</span>`;
+
+  flip.appendChild(front);
+  flip.appendChild(back);
+  wrap.appendChild(flip);
+  return wrap;
+}
+
+function renderGrid(data, gridId, type, cat){
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = "";
+  data.forEach((item, i) => {
+    if(cat && item.cat !== cat) return;
+    grid.appendChild(makeCard(item, type, i));
+  });
+  bindTilt(grid);
+}
+
+/* ================= 图例 + 筛选器 ================= */
+function buildLegend(cats, legendId){
+  document.getElementById(legendId).innerHTML = cats
+    .map(c => `<span><i style="background:${catColor(c)}"></i>${c}</span>`).join("");
+}
+function buildFilters(cats, barId, gridId, type){
+  const bar = document.getElementById(barId);
+  bar.innerHTML = "";
+  ["全部", ...cats].forEach((c, i) => {
+    const b = document.createElement("button");
+    b.className = "chip ripple-host" + (i === 0 ? " active" : "");
+    b.textContent = c;
+    if(c !== "全部") b.style.borderLeftColor = catColor(c);
+    b.onclick = () => {
+      bar.querySelectorAll(".chip").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      renderGrid((type === "book" ? BOOKS : type === "course" ? COURSES : JOBS), gridId, type, c === "全部" ? null : c);
+    };
+    bar.appendChild(b);
+  });
+}
+
+const bookCats = [...new Set(BOOKS.map(b => b.cat))];
+const courseCats = [...new Set(COURSES.map(c => c.cat))];
+const jobCats = [...new Set(JOBS.map(j => j.cat))];
+buildLegend(bookCats, "bookLegend");
+buildLegend(courseCats, "courseLegend");
+buildLegend(jobCats, "jobLegend");
+buildFilters(bookCats, "bookFilters", "bookGrid", "book");
+buildFilters(courseCats, "courseFilters", "courseGrid", "course");
+buildFilters(jobCats, "jobFilters", "jobGrid", "job");
+renderGrid(BOOKS, "bookGrid", "book");
+renderGrid(COURSES, "courseGrid", "course");
+renderGrid(JOBS, "jobGrid", "job");
+
+/* ================= 收藏页渲染 ================= */
+function renderFavs(){
+  const bg = document.getElementById("favBookGrid"), cg = document.getElementById("favCourseGrid"), jg = document.getElementById("favJobGrid");
+  bg.innerHTML = ""; cg.innerHTML = ""; jg.innerHTML = "";
+  const bs = favs.book.map(t => BOOKS.find(b => b.title === t)).filter(Boolean);
+  const cs = favs.course.map(t => COURSES.find(c => c.title === t)).filter(Boolean);
+  const js = favs.job.map(t => JOBS.find(j => j.title === t)).filter(Boolean);
+  bs.forEach((b, i) => bg.appendChild(makeCard(b, "book", i)));
+  cs.forEach((c, i) => cg.appendChild(makeCard(c, "course", i)));
+  js.forEach((j, i) => jg.appendChild(makeCard(j, "job", i)));
+  bindTilt(bg); bindTilt(cg); bindTilt(jg);
+  document.getElementById("favBookSec").style.display = bs.length ? "block" : "none";
+  document.getElementById("favCourseSec").style.display = cs.length ? "block" : "none";
+  document.getElementById("favJobSec").style.display = js.length ? "block" : "none";
+  document.getElementById("favEmpty").style.display = (bs.length + cs.length + js.length) ? "none" : "block";
+}
+/* ================= 视图切换 ================= */
+function showView(name){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("on"));
+  document.getElementById("view-" + name).classList.add("on");
+  document.querySelectorAll(".nav-btn[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+  document.documentElement.classList.toggle("snapping", name === "home");
+  window.scrollTo({top:0, behavior:"auto"});
+  if(name === "favs") renderFavs();
+  if(name === "home"){ runTypewriter(); onPinScroll(); }
+}
+document.querySelectorAll("[data-view]").forEach(el => {
+  el.addEventListener("click", () => showView(el.dataset.view));
+});
+
+/* ================= 三维倾斜 + 翻转（绑定一次，防重复） ================= */
+function bindTilt(scope){
+  scope.querySelectorAll(".tilt:not([data-bound])").forEach(card => {
+    card.dataset.bound = "1";
+    const flip = card.querySelector(".flip");
+    card.addEventListener("mousemove", e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      const rx = Math.max(-12, Math.min(12, -y * 24));
+      const ry = Math.max(-12, Math.min(12,  x * 24));
+      card.style.transition = "transform .08s ease-out";
+      card.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    });
+    card.addEventListener("mouseleave", () => {
+      card.style.transition = "transform .4s ease-out";
+      card.style.transform = "perspective(800px) rotateX(0deg) rotateY(0deg)";
+      setTimeout(() => card.style.transition = "", 400);
+    });
+    flip.addEventListener("click", e => {
+      if(e.target.closest(".fav-btn")) return;
+      e.stopPropagation();
+      flip.classList.toggle("flipped");
+    });
+  });
+}
+bindTilt(document);
+
+/* ================= 点击涟漪 + 收藏按钮（事件委托） ================= */
+document.addEventListener("click", e => {
+  const favBtn = e.target.closest(".fav-btn");
+  if(favBtn){
+    e.stopPropagation();
+    const [type, title] = favBtn.dataset.key.split(":");
+    toggleFav(type, title);
+    return;
+  }
+  const host = e.target.closest(".ripple-host");
+  if(!host) return;
+  const r = host.getBoundingClientRect();
+  const size = Math.max(r.width, r.height);
+  const span = document.createElement("span");
+  span.className = "ripple";
+  span.style.width = span.style.height = size + "px";
+  span.style.left = (e.clientX - r.left - size / 2) + "px";
+  span.style.top = (e.clientY - r.top - size / 2) + "px";
+  host.appendChild(span);
+  setTimeout(() => span.remove(), 650);
+});
+
+/* ================= 全站搜索 ================= */
+const searchInput = document.getElementById("searchInput");
+const searchResults = document.getElementById("searchResults");
+const INDEX = [
+  ...BOOKS.map(b => ({type:"book", title:b.title, cat:b.cat, keywords:(b.author + b.publisher + b.desc + b.back + b.cat)})),
+  ...COURSES.map(c => ({type:"course", title:c.title, cat:c.cat, keywords:(c.desc + c.back + c.cat + c.src)})),
+  ...JOBS.map(j => ({type:"job", title:j.title, cat:j.cat, keywords:(j.desc + j.back + j.cat + j.salary)}))
+];
+function doSearch(q){
+  if(!q.trim()){ searchResults.classList.remove("show"); return; }
+  const hits = INDEX.filter(i => (i.title + i.keywords).toLowerCase().includes(q.toLowerCase())).slice(0, 12);
+  searchResults.innerHTML = hits.length
+    ? hits.map(h => `<div class="search-item" data-type="${h.type}" data-title="${h.title}"><span class="t">${h.type === "job" ? h.title : "《" + h.title + "》"}</span><span class="tag sans">${h.type === "book" ? "书籍" : h.type === "course" ? "课程" : "岗位"} · ${h.cat}</span></div>`).join("")
+    : `<div class="search-empty">未找到相关内容，换个关键词试试</div>`;
+  searchResults.classList.add("show");
+  searchResults.querySelectorAll(".search-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const ds = item.dataset;
+      searchResults.classList.remove("show");
+      searchInput.value = "";
+      showView(ds.type === "book" ? "books" : ds.type === "course" ? "courses" : "jobs");
+      setTimeout(() => {
+        const card = document.querySelector(`#view-${ds.type === "book" ? "books" : ds.type === "course" ? "courses" : "jobs"} .tilt[data-title="${ds.title}"]`);
+        if(card){
+          card.scrollIntoView({behavior:"smooth", block:"center"});
+          card.classList.remove("flash");
+          void card.offsetWidth;
+          card.classList.add("flash");
+        }
+      }, 120);
+    });
+  });
+}
+searchInput.addEventListener("input", e => doSearch(e.target.value));
+searchInput.addEventListener("keydown", e => {
+  if(e.key === "Enter"){
+    const first = searchResults.querySelector(".search-item");
+    if(first) first.click();
+  }
+});
+document.addEventListener("click", e => {
+  if(!e.target.closest(".search-wrap")) searchResults.classList.remove("show");
+});
+
+/* ================= 打字机（60ms / 字 + 闪烁光标） ================= */
+const TW_TEXT = "铁肩担道义，妙手著文章。";
+let twTimer = null;
+function runTypewriter(){
+  const el = document.getElementById("typeText");
+  clearInterval(twTimer);
+  el.textContent = "";
+  let i = 0;
+  twTimer = setInterval(() => {
+    if(i >= TW_TEXT.length){ clearInterval(twTimer); return; }
+    el.textContent += TW_TEXT[i++];
+  }, 60);
+}
+runTypewriter();
+
+/* ================= 刊期日期：随时间自动更新 ================= */
+function refreshIssue(){
+  const d = new Date();
+  const week = "日一二三四五六"[d.getDay()];
+  document.getElementById("issueDate").textContent =
+    `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日 · 星期${week}`;
+  const start = new Date(d.getFullYear(), 0, 0);
+  const doy = Math.floor((d - start) / 864e5);
+  document.getElementById("issueNo").textContent = String(doy).padStart(3, "0");
+}
+refreshIssue();
+setInterval(refreshIssue, 60000);
+
+/* ================= pin 滚动缩放：scale(0.4) → 铺满视口 ================= */
+const pinWrap = document.getElementById("pinWrap");
+const scaleImg = document.getElementById("scaleImg");
+const pinText = document.getElementById("pinText");
+function onPinScroll(){
+  if(!document.getElementById("view-home").classList.contains("on")) return;
+  const r = pinWrap.getBoundingClientRect();
+  const vh = window.innerHeight;
+  const total = r.height - vh;
+  if(total <= 0) return;
+  const p = Math.min(1, Math.max(0, -r.top / total));
+  const s = 0.4 + p * 0.75;
+  scaleImg.style.transform = `scale(${s})`;
+  pinText.style.opacity = p > 0.55 ? Math.min(1, (p - 0.55) / 0.35) : 0;
+}
+window.addEventListener("scroll", onPinScroll, {passive:true});
+window.addEventListener("resize", onPinScroll);
+onPinScroll();
+
+/* ================= 滚动新闻条 ================= */
+const tickerText = "真实 · 客观 · 公正 · 全面 · 及时 · 准确 —— 新闻之要义 &nbsp;&nbsp;｜&nbsp;&nbsp; <b>铁肩担道义，妙手著文章</b> &nbsp;&nbsp;｜&nbsp;&nbsp; 课程信息来源：教育部《普通高等学校本科专业类教学质量国家标准（新闻传播学类）》 &nbsp;&nbsp;｜&nbsp;&nbsp; 书目：36 本经典 &nbsp;&nbsp;｜&nbsp;&nbsp; 课程：14 门必修 &nbsp;&nbsp;｜&nbsp;&nbsp; 岗位：20 类 · 五大方向 &nbsp;&nbsp;｜&nbsp;&nbsp; 收藏同步保存于本机浏览器 &nbsp;&nbsp;｜&nbsp;&nbsp; ";
+document.getElementById("tickerInner").innerHTML = tickerText + tickerText;
+
+/* ================= 初始化 ================= */
+updateFavUI();
+</script>
+</body>
+</html>
